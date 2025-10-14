@@ -24,10 +24,13 @@
                 <ul class="flex space-x-6 items-center">
                     @auth
                         <li><a href="{{route('dashboard')}}">Dashboard</a></li>
-                        <li><a href="{{route('jobs.index')}}">Jobs</a></li>
+
+                        @if(auth()->user()->isCandidate())
+                            <li><a href="{{route('jobs.index')}}">Jobs</a></li>
+                        @endif
                         
                         @if(auth()->user()->isEmployer())
-                            <li><a href="{{route('my-jobs.index')}}">My Jobs</a></li>
+                            <li><a href="{{route('jobs.index')}}">Campaigns</a></li>
                         @endif
                         
                         @if(auth()->user()->isCandidate())

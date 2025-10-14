@@ -1,7 +1,7 @@
 <x-layout>
     <x-breadcrumbs class="mb-4" :links="['Jobs' => route('jobs.index')]" />
 
-    <div class="max-w-7xl mx-auto">
+    <div class="mx-auto">
         <!-- Filters -->
         <x-card class="mb-6 text-sm">
             <form id="filtering-form" action="{{ route('jobs.index') }}" method="GET" class="space-y-4">
@@ -65,19 +65,26 @@
                         </div>
 
                         <!-- Title -->
-                        <a href="{{ route('jobs.show', $job) }}" class="font-semibold text-lg text-gray-800 mb-2 line-clamp-2 hover:text-indigo-600 transition">
+                        <h3 class="font-semibold text-lg text-gray-800 mb-2 line-clamp-2">
                             {{ $job->title }}
-                        </a>
+                        </h3>
 
-                        <!-- Category or City -->
-                        <p class="text-sm text-gray-500 mb-4">
-                            {{ $job->category ?? 'Uncategorized' }}
-                            @if($job->city)
-                                <span class="text-gray-400">·</span> {{ $job->city }}
-                            @endif
+                        <!-- Candidates Count -->
+                        <p class="text-xs mb-1 text-gray-600">
+                            <strong>{{ $job->jobApplications()->count() }}</strong> Candidates
                         </p>
 
-                        <!-- Apply/View Button -->
+                        <!-- Managed By -->
+                        <p class="text-xs mb-1 text-gray-500">
+                            Managed by: {{ $job->consultant?->name ?? 'PHR Team' }}
+                        </p>
+
+                        <!-- Date Started -->
+                        <p class="text-xs text-gray-500 mb-4">
+                            Date Started: {{ optional($job->date_posted)->format('d M Y') ?? 'N/A' }}
+                        </p>
+
+                        <!-- Action Button -->
                         <div class="mt-auto w-full">
                             @if(auth()->user()->isCandidate())
                                 @if($job->hasUserApplied(auth()->user()))
@@ -86,14 +93,14 @@
                                     </span>
                                 @else
                                     <a href="{{ route('job.application.create', $job) }}"
-                                       class="inline-block w-full px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition">
+                                       class="inline-block w-full px-4 py-2 bg-[#04215c] text-white text-sm font-medium rounded-md transition hover:bg-[#06318a]">
                                        Apply Now
                                     </a>
                                 @endif
                             @else
                                 <a href="{{ route('jobs.show', $job) }}"
-                                   class="inline-block w-full px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition">
-                                   View Details
+                                   class="inline-block w-full px-4 py-2 bg-[#04215c] text-white text-sm font-medium rounded-md transition hover:bg-[#06318a]">
+                                   View Campaign
                                 </a>
                             @endif
                         </div>

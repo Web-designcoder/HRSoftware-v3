@@ -28,6 +28,7 @@ class Job extends Model
         'managed_by',
         'company_logo',
         'campaign_documents',
+        'consultant_id', // ✅ added new field
     ];
 
     protected $casts = [
@@ -50,6 +51,12 @@ class Job extends Model
         return $this->hasMany(JobApplication::class);
     }
 
+    public function consultant(): BelongsTo
+    {
+        // HR/admin user assigned to manage this job campaign
+        return $this->belongsTo(User::class, 'consultant_id');
+    }
+
     /* ───── Scopes ───── */
 
     public function scopeFilter(Builder $query, array $filters): Builder
@@ -59,21 +66,21 @@ class Job extends Model
                 $query->where(function ($query) use ($search) {
                     $query->where('title', 'like', "%{$search}%")
                         ->orWhere('description', 'like', "%{$search}%")
-                        ->orWhereHas('employer', fn($q) => 
+                        ->orWhereHas('employer', fn($q) =>
                             $q->where('company_name', 'like', "%{$search}%")
                         );
                 });
             })
-            ->when($filters['min_salary'] ?? null, fn($q, $min) => 
+            ->when($filters['min_salary'] ?? null, fn($q, $min) =>
                 $q->where('salary', '>=', $min)
             )
-            ->when($filters['max_salary'] ?? null, fn($q, $max) => 
+            ->when($filters['max_salary'] ?? null, fn($q, $max) =>
                 $q->where('salary', '<=', $max)
             )
-            ->when($filters['experience'] ?? null, fn($q, $exp) => 
+            ->when($filters['experience'] ?? null, fn($q, $exp) =>
                 $q->where('experience', $exp)
             )
-            ->when($filters['category'] ?? null, fn($q, $cat) => 
+            ->when($filters['category'] ?? null, fn($q, $cat) =>
                 $q->where('category', $cat)
             );
     }
@@ -83,7 +90,7 @@ class Job extends Model
     public function hasUserApplied(User|int $user): bool
     {
         $userId = $user instanceof User ? $user->id : $user;
-        
+
         return $this->jobApplications()
             ->where('user_id', $userId)
             ->exists();
