@@ -99,4 +99,16 @@ class User extends Authenticatable
         }
         return $this->name;
     }
+
+    //Auto populate name 
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::saving(function ($user) {
+            if ($user->first_name && $user->last_name) {
+                $user->name = "{$user->first_name} {$user->last_name}";
+            }
+        });
+    }
 }

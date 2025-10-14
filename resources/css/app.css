@@ -1,12 +1,53 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source "../**/*.blade.php";
-@source "../**/*.js";
-@source "../**/*.vue";
+/* Form Input Styles */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="file"],
+input[type="number"],
+textarea,
+select {
+    @apply mt-1 border border-gray-300 rounded-md px-3 py-2;
+}
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+/* General */
+button {
+    cursor: pointer;
+}
+
+/* CKEditor */
+.ck-editor__editable_inline {
+    min-height: 250px;
+}
+
+/* Dashboard Grid System */
+#dashboard {
+    display: flex;
+    gap: 2%;
+}
+
+#dashboard .column {
+    width: 23.5%
+}
+
+#dashboard .column > * {
+    height: 300px;
+    width: 100%
+}
+
+#dashboard .column.column-2-3 {
+    width: 24%;
+}
+
+#dashboard .column.column-2-3 > *:first-child {
+    height: 150px;
+} 
+
+#dashboard .column-2-3 > *:last-child {
+    height: 450px;
+} 
+
+#dashboard .column > *:first-child {
+    margin-bottom: 20px;
 }

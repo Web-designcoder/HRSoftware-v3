@@ -12,24 +12,28 @@ use App\Http\Controllers\AccountController;
 use Illuminate\Support\Facades\Route;
 
 /* ───────────────────────────────────────────────────
-   GUEST ROUTES (No authentication required)
+   PUBLIC ROUTES - ONLY LOGIN
 ─────────────────────────────────────────────────── */
 
-Route::get('login', fn() => to_route('auth.create'))->name('login');
-Route::resource('auth', AuthController::class)->only(['create', 'store']);
-
-// Public job listings (anyone can browse)
-Route::get('/', [JobController::class, 'index'])->name('jobs.index');
-Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
+// Login page (only public page)
+Route::get('login', [AuthController::class, 'create'])->name('login');
+Route::get('auth/create', [AuthController::class, 'create'])->name('auth.create');
+Route::post('auth', [AuthController::class, 'store'])->name('auth.store');
 
 /* ───────────────────────────────────────────────────
-   AUTHENTICATED ROUTES
+   ALL OTHER ROUTES - REQUIRE LOGIN
 ─────────────────────────────────────────────────── */
 
 Route::middleware('auth')->group(function () {
     
+    // Homepage - redirects to dashboard
+    Route::get('/', function() {
+        return redirect()->route('dashboard');
+    });
+    
     // Logout
     Route::delete('logout', [AuthController::class, 'destroy'])->name('logout');
+    Route::delete('auth', [AuthController::class, 'destroy'])->name('auth.destroy');
     
     // Terms & Conditions (must accept before accessing app)
     Route::get('/terms', [TermsController::class, 'show'])->name('terms.show');
@@ -40,6 +44,10 @@ Route::middleware('auth')->group(function () {
         
         // Dashboard (role-based)
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Jobs (all authenticated users can browse)
+        Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
+        Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
 
         // Account settings (all roles)
         Route::get('/account', [AccountController::class, 'edit'])->name('account.edit');

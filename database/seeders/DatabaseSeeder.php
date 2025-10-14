@@ -12,7 +12,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // ───── CREATE ADMIN USER ─────
+        // ───── CREATE TEST ADMIN USER ─────
         $admin = User::factory()->create([
             'name' => 'Admin User',
             'email' => 'admin@hr-software.com',
@@ -20,27 +20,57 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',
             'first_name' => 'Admin',
             'last_name' => 'User',
-            'terms_accepted_at' => now(),
+            'terms_accepted_at' => null,
         ]);
 
-        // ───── CREATE EMPLOYER USERS ─────
-        $employers = User::factory(20)->create([
+        // ───── CREATE TEST EMPLOYER USER ─────
+        $testEmployerUser = User::factory()->create([
+            'name' => 'Test Employer',
+            'email' => 'employer@hr-software.com',
+            'password' => bcrypt('password'),
             'role' => 'employer',
-            'terms_accepted_at' => now(),
+            'first_name' => 'Test',
+            'last_name' => 'Employer',
+            'terms_accepted_at' => null,
+        ]);
+
+        // ───── CREATE TEST CANDIDATE USER ─────
+        $testCandidateUser = User::factory()->create([
+            'name' => 'Test Candidate',
+            'email' => 'candidate@hr-software.com',
+            'password' => bcrypt('password'),
+            'role' => 'candidate',
+            'first_name' => 'Test',
+            'last_name' => 'Candidate',
+            'terms_accepted_at' => null,
+        ]);
+
+        // ───── CREATE OTHER EMPLOYER USERS ─────
+        $employers = User::factory(19)->create([
+            'role' => 'employer',
+            'terms_accepted_at' => null,
         ]);
 
         // Create employer profiles for each employer user
         $employerProfiles = [];
+        
+        // Create profile for test employer
+        $employerProfiles[] = Employer::factory()->create([
+            'user_id' => $testEmployerUser->id,
+            'company_name' => 'Test Company',
+        ]);
+        
+        // Create profiles for other employers
         foreach ($employers as $employerUser) {
             $employerProfiles[] = Employer::factory()->create([
                 'user_id' => $employerUser->id,
             ]);
         }
 
-        // ───── CREATE CANDIDATE USERS ─────
-        $candidates = User::factory(200)->create([
+        // ───── CREATE OTHER CANDIDATE USERS ─────
+        $candidates = User::factory(199)->create([
             'role' => 'candidate',
-            'terms_accepted_at' => now(),
+            'terms_accepted_at' => null,
         ]);
 
         // ───── CREATE JOBS (by employers) ─────
@@ -53,8 +83,9 @@ class DatabaseSeeder extends Seeder
 
         // ───── CREATE JOB APPLICATIONS (by candidates) ─────
         $allJobs = Job::all();
+        $allCandidates = collect([$testCandidateUser])->merge($candidates);
         
-        foreach ($candidates as $candidate) {
+        foreach ($allCandidates as $candidate) {
             // Each candidate applies to 0-5 random jobs
             $jobsToApply = $allJobs->random(rand(0, 5));
             
@@ -81,12 +112,12 @@ class DatabaseSeeder extends Seeder
         $this->command->info('   Email: admin@hr-software.com');
         $this->command->info('   Password: password');
         $this->command->info('');
-        $this->command->info('💼 EMPLOYER (example):');
-        $this->command->info('   Email: ' . $employers->first()->email);
+        $this->command->info('💼 EMPLOYER:');
+        $this->command->info('   Email: employer@hr-software.com');
         $this->command->info('   Password: password');
         $this->command->info('');
-        $this->command->info('👤 CANDIDATE (example):');
-        $this->command->info('   Email: ' . $candidates->first()->email);
+        $this->command->info('👤 CANDIDATE:');
+        $this->command->info('   Email: candidate@hr-software.com');
         $this->command->info('   Password: password');
         $this->command->info('');
         $this->command->info('═══════════════════════════════════════════');
