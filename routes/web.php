@@ -9,6 +9,7 @@ use App\Http\Controllers\MyJobController;
 use App\Http\Controllers\MyJobApplicationController;
 use App\Http\Controllers\TermsController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\EmployerJobApplicationController;
 use Illuminate\Support\Facades\Route;
 
 /* ───────────────────────────────────────────────
@@ -74,6 +75,10 @@ Route::middleware('auth')->group(function () {
             // Route::get('/my-jobs/{myJob}/edit', [MyJobController::class, 'edit'])->name('my-jobs.edit');
             // Route::put('/my-jobs/{myJob}', [MyJobController::class, 'update'])->name('my-jobs.update');
             // Route::delete('/my-jobs/{myJob}', [MyJobController::class, 'destroy'])->name('my-jobs.destroy');
+
+            // Employer can view candidate applications (read-only)
+            Route::get('/employer/jobs/{job}/applications/{jobApplication}', [EmployerJobApplicationController::class, 'show'])
+                ->name('employer.job.application.show');
         });
 
         /* ───────────────────────────────

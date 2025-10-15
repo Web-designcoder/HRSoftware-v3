@@ -85,7 +85,7 @@
                                 </div>
 
                                 <!-- View Button -->
-                                <a href="#"
+                                <a href="{{ route('employer.job.application.show', [$job, $application]) }}"
                                    class="inline-block px-4 py-2 bg-[#04215c] text-white text-sm rounded-md hover:bg-[#06318a] transition">
                                     View Candidate
                                 </a>
