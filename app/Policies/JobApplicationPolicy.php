@@ -21,10 +21,8 @@ class JobApplicationPolicy
             return true;
         }
 
-        // Consultants can view applications for jobs they manage
-        if ($user->role === 'consultant'
-            && $application->job
-            && (int) $application->job->consultant_id === (int) $user->id) {
+        // Consultants can view if assigned to job
+        if ($user->isConsultant() && $application->job->consultant_id === $user->id) {
             return true;
         }
 

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('password');
             
             // Role system
-            $table->enum('role', ['admin', 'employer', 'candidate'])->default('candidate');
+            $table->enum('role', ['admin', 'consultant', 'employer', 'candidate'])->default('candidate');
             
             // Profile fields
             $table->string('profile_picture')->nullable();

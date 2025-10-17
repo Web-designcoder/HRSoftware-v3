@@ -23,6 +23,17 @@ class DatabaseSeeder extends Seeder
             'terms_accepted_at' => null,
         ]);
 
+        // ───── CREATE TEST Consultant USER ─────
+        $admin = User::factory()->create([
+            'name' => 'Consultant User',
+            'email' => 'consultant@hr-software.com',
+            'password' => bcrypt('password'),
+            'role' => 'consultant',
+            'first_name' => 'Consultant',
+            'last_name' => 'User',
+            'terms_accepted_at' => null,
+        ]);
+
         // ───── CREATE TEST EMPLOYER USER ─────
         $testEmployerUser = User::factory()->create([
             'name' => 'Test Employer',
@@ -110,6 +121,10 @@ class DatabaseSeeder extends Seeder
         $this->command->info('');
         $this->command->info('🔑 ADMIN:');
         $this->command->info('   Email: admin@hr-software.com');
+        $this->command->info('   Password: password');
+        $this->command->info('');
+        $this->command->info('🔑 CONSULTANT:');
+        $this->command->info('   Email: consultant@hr-software.com');
         $this->command->info('   Password: password');
         $this->command->info('');
         $this->command->info('💼 EMPLOYER:');

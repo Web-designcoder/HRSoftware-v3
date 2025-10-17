@@ -11,7 +11,7 @@ class CheckRole
     /**
      * Handle an incoming request.
      * 
-     * Usage: ->middleware('role:admin,employer')
+     * Usage: ->middleware('role:admin,consultant,employer')
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {

@@ -16,6 +16,7 @@ class DashboardController extends Controller
         // Route to appropriate dashboard based on role
         return match ($user->role) {
             'admin' => $this->adminDashboard(),
+            'consultant' => $this->adminDashboard(),
             'employer' => $this->employerDashboard(),
             'candidate' => $this->candidateDashboard(),
             default => abort(403, 'Invalid user role'),
@@ -27,27 +28,39 @@ class DashboardController extends Controller
      */
     private function adminDashboard()
     {
-        $stats = [
-            'total_users' => User::count(),
-            'total_employers' => User::where('role', 'employer')->count(),
-            'total_candidates' => User::where('role', 'candidate')->count(),
-            'total_jobs' => Job::count(),
-            'active_jobs' => Job::whereNull('deleted_at')->count(),
-            'total_applications' => JobApplication::count(),
-            'pending_applications' => JobApplication::where('status', 'pending')->count(),
-        ];
+        $user = auth()->user();
 
-        $recent_jobs = Job::with('employer')
-            ->latest()
-            ->take(10)
-            ->get();
+        // Superadmin sees everything
+        if ($user->isAdmin()) {
+            $campaigns = \App\Models\Job::with(['consultant','employer'])
+                ->withCount('jobApplications')
+                ->latest()
+                ->take(4)
+                ->get();
 
-        $recent_applications = JobApplication::with(['job', 'user'])
-            ->latest()
-            ->take(10)
-            ->get();
+            $applications = \App\Models\JobApplication::with(['job.employer','user'])
+                ->latest()
+                ->take(10)
+                ->get();
+        }
 
-        return view('dashboard.admin', compact('stats', 'recent_jobs', 'recent_applications'));
+        // Consultant sees only their assigned campaigns
+        if ($user->isConsultant()) {
+            $campaigns = \App\Models\Job::with(['consultant','employer'])
+                ->withCount('jobApplications')
+                ->where('consultant_id', $user->id)
+                ->latest()
+                ->take(4)
+                ->get();
+
+            $applications = \App\Models\JobApplication::with(['job.employer','user'])
+                ->whereHas('job', fn($q) => $q->where('consultant_id', $user->id))
+                ->latest()
+                ->take(10)
+                ->get();
+        }
+
+        return view('dashboard.admin', compact('campaigns', 'applications'));
     }
 
     /**

@@ -1,7 +1,7 @@
 <x-layout>
     <x-breadcrumbs :links="['My Applications' => '#']" class="mb-4"/>
 
-    <div class="max-w-7xl mx-auto">
+    <div class="mx-auto">
         @if ($applications->isNotEmpty())
             <div class="flex flex-wrap gap-6">
                 @foreach ($applications as $application)

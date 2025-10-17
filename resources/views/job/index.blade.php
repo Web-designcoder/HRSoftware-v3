@@ -65,9 +65,11 @@
                         </div>
 
                         <!-- Title -->
-                        <h3 class="font-semibold text-lg text-gray-800 mb-2 line-clamp-2">
-                            {{ $job->title }}
-                        </h3>
+                        <a href="{{ route('jobs.show', $job) }}">
+                            <h3 class="font-semibold text-lg text-gray-800 mb-2 line-clamp-2">
+                                {{ $job->title }}
+                            </h3>
+                        </a>
 
                         <!-- Candidates Count -->
                         <p class="text-xs mb-1 text-gray-600">
@@ -86,23 +88,10 @@
 
                         <!-- Action Button -->
                         <div class="mt-auto w-full">
-                            @if(auth()->user()->isCandidate())
-                                @if($job->hasUserApplied(auth()->user()))
-                                    <span class="inline-block w-full px-4 py-2 bg-gray-100 text-gray-600 text-sm font-medium rounded-md">
-                                        Applied
-                                    </span>
-                                @else
-                                    <a href="{{ route('job.application.create', $job) }}"
-                                       class="inline-block w-full px-4 py-2 bg-[#04215c] text-white text-sm font-medium rounded-md transition hover:bg-[#06318a]">
-                                       Apply Now
-                                    </a>
-                                @endif
-                            @else
-                                <a href="{{ route('jobs.show', $job) }}"
-                                   class="inline-block w-full px-4 py-2 bg-[#04215c] text-white text-sm font-medium rounded-md transition hover:bg-[#06318a]">
-                                   View Campaign
-                                </a>
-                            @endif
+                            <a href="{{ route('jobs.show', $job) }}"
+                                class="inline-block w-full px-4 py-2 bg-[#04215c] text-white text-sm font-medium rounded-md transition hover:bg-[#06318a]">
+                                View Details
+                            </a>
                         </div>
                     </div>
                 @endforeach

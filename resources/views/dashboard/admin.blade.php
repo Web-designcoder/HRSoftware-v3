@@ -1,6 +1,8 @@
 <x-layout>
     <div class="container mx-auto py-6">
-        <h1 class="text-2xl font-bold mb-4">Admin Dashboard</h1>
+        <h1 class="text-2xl font-bold mb-4">
+            {{ auth()->user()->isAdmin() ? 'Admin Dashboard' : 'Consultant Dashboard' }}
+        </h1>
         <p>Welcome back, {{ auth()->user()->name }}!</p>
 
         <div id="dashboard" class="text-white flex flex-wrap gap-4">
@@ -10,17 +12,6 @@
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-2xl font-bold text-slate-900">Recent Applications</h2>
                     </div>
-
-                    @php
-                        $consultantId = auth()->id();
-
-                        // Applications submitted to jobs managed by this admin/consultant
-                        $applications = \App\Models\JobApplication::query()
-                            ->with(['job.employer', 'user'])
-                            ->latest()
-                            ->take(10)
-                            ->get();
-                    @endphp
 
                     @if($applications->count() > 0)
                         <div class="flex-1 overflow-y-auto pr-1">
@@ -85,14 +76,16 @@
                         <div class="text-center py-12 flex-1 flex items-center justify-center">
                             <div>
                                 <p class="text-xl opacity-80 text-slate-900">No applications yet</p>
-                                <p class="text-sm opacity-60 mt-2 text-slate-700">When candidates apply to your campaigns, they'll appear here.</p>
+                                <p class="text-sm opacity-60 mt-2 text-slate-700">
+                                    When candidates apply to your campaigns, they'll appear here.
+                                </p>
                             </div>
                         </div>
                     @endif
                 </x-card>
             </div>
 
-            {{-- Column 2: Campaigns (mirrors employer UI) --}}
+            {{-- Column 2: Campaigns --}}
             <div class="column" style="width: 49%;">
                 <x-card class="!bg-gradient-to-br from-[#3b76c4] to-[#0cc0df] p-6 flex flex-col !h-[620px]">
                     <div class="flex justify-between items-center mb-4">
@@ -104,17 +97,6 @@
                             </svg>
                         </a>
                     </div>
-
-                    @php
-                        $consultantId = auth()->id();
-
-                        $campaigns = \App\Models\Job::query()
-                            ->with(['consultant', 'employer'])
-                            ->withCount('jobApplications')
-                            ->latest()
-                            ->take(4)
-                            ->get();
-                    @endphp
 
                     @if($campaigns->count() > 0)
                         <div class="flex flex-wrap gap-4 justify-center flex-1">

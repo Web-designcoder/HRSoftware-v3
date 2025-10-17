@@ -10,6 +10,7 @@ use App\Http\Controllers\MyJobApplicationController;
 use App\Http\Controllers\TermsController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\EmployerJobApplicationController;
+use App\Http\Controllers\AdminUserController; // ← ADDED
 use Illuminate\Support\Facades\Route;
 
 /* ───────────────────────────────────────────────
@@ -70,11 +71,6 @@ Route::middleware('auth')->group(function () {
 
             // ⛔ Disable employer job CRUD for now (read-only)
             Route::get('/my-jobs', [MyJobController::class, 'index'])->name('my-jobs.index');
-            // Route::get('/my-jobs/create', [MyJobController::class, 'create'])->name('my-jobs.create');
-            // Route::post('/my-jobs', [MyJobController::class, 'store'])->name('my-jobs.store');
-            // Route::get('/my-jobs/{myJob}/edit', [MyJobController::class, 'edit'])->name('my-jobs.edit');
-            // Route::put('/my-jobs/{myJob}', [MyJobController::class, 'update'])->name('my-jobs.update');
-            // Route::delete('/my-jobs/{myJob}', [MyJobController::class, 'destroy'])->name('my-jobs.destroy');
 
             // Employer can view candidate applications (read-only)
             Route::get('/employer/jobs/{job}/applications/{jobApplication}', [EmployerJobApplicationController::class, 'show'])
@@ -82,15 +78,31 @@ Route::middleware('auth')->group(function () {
         });
 
         /* ───────────────────────────────
-           ADMIN ROUTES
+           ADMIN & CONSULTANT ROUTES
         ─────────────────────────────── */
-        Route::middleware('role:admin')->group(function () {
+        Route::middleware('role:admin,consultant')->group(function () {
             Route::get('/admin/jobs', [JobController::class, 'index'])->name('admin.jobs.index');
             Route::get('/admin/jobs/create', [JobController::class, 'create'])->name('jobs.create');
             Route::post('/admin/jobs', [JobController::class, 'store'])->name('jobs.store');
             Route::get('/admin/jobs/{job}/edit', [JobController::class, 'edit'])->name('jobs.edit');
             Route::put('/admin/jobs/{job}', [JobController::class, 'update'])->name('jobs.update');
             Route::delete('/admin/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
+
+            // Admin & Consultant: Update job application status
+            Route::put('/applications/{application}/update-status', [JobApplicationController::class, 'updateStatus'])
+                ->name('job.application.updateStatus');
+        });
+
+        /* ───────────────────────────────
+           ADMIN (SUPERADMIN) — USERS CRUD
+        ─────────────────────────────── */
+        Route::middleware('role:admin')->prefix('/admin/users')->name('admin.users.')->group(function () {
+            Route::get('/', [AdminUserController::class, 'index'])->name('index');
+            Route::get('/create', [AdminUserController::class, 'create'])->name('create');
+            Route::post('/', [AdminUserController::class, 'store'])->name('store');
+            Route::get('/{user}/edit', [AdminUserController::class, 'edit'])->name('edit');
+            Route::put('/{user}', [AdminUserController::class, 'update'])->name('update');
+            Route::delete('/{user}', [AdminUserController::class, 'destroy'])->name('destroy');
         });
     });
 });

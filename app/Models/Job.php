@@ -53,7 +53,7 @@ class Job extends Model
 
     public function consultant(): BelongsTo
     {
-        // HR/admin user assigned to manage this job campaign
+        // Consultant/Admin user assigned to manage this job campaign
         return $this->belongsTo(User::class, 'consultant_id');
     }
 

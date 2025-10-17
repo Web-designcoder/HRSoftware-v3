@@ -49,17 +49,20 @@
                 </p>
             </div>
 
-            <!-- Interested in this candidate -->
-            <div class="bg-white shadow rounded-lg p-6">
-                <h3 class="text-base font-semibold text-gray-800 mb-2">Interested in this candidate?</h3>
-                <p class="text-sm text-gray-600 mb-4">
-                    Contact your recruiter to discuss next steps, interviews, or shortlisting.
-                </p>
-                <a href="{{ $mailto }}"
-                   class="inline-block w-full text-center px-4 py-2 bg-[#04215c] text-white text-sm font-semibold rounded-md hover:bg-[#06318a] transition">
-                    Contact recruiter{{ $recruiterName ? ' — ' . $recruiterName : '' }}
-                </a>
-            </div>
+            {{-- Hide for admin & consultant --}}
+            @if(auth()->user()->isEmployer())
+                <!-- Interested in this candidate -->
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h3 class="text-base font-semibold text-gray-800 mb-2">Interested in this candidate?</h3>
+                    <p class="text-sm text-gray-600 mb-4">
+                        Contact your recruiter to discuss next steps, interviews, or shortlisting.
+                    </p>
+                    <a href="{{ $mailto }}"
+                       class="inline-block w-full text-center px-4 py-2 bg-[#04215c] text-white text-sm font-semibold rounded-md hover:bg-[#06318a] transition">
+                        Contact recruiter{{ $recruiterName ? ' — ' . $recruiterName : '' }}
+                    </a>
+                </div>
+            @endif
 
             <!-- Candidate introduction video -->
             <div class="bg-white shadow rounded-lg overflow-hidden">
@@ -102,13 +105,35 @@
                     <p class="text-sm text-gray-500">
                         Applied: {{ optional($application->created_at)->format('d M Y') ?? 'N/A' }}
                         <span class="text-gray-300">·</span>
-                        Status:
-                        <span class="inline-block align-middle px-2 py-0.5 rounded-full text-xs font-semibold
-                                     {{ ($application->status ?? 'pending') === 'shortlist' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' }}">
-                            {{ ucfirst($application->status ?? 'pending') }}
-                        </span>
+
+                        {{-- Admin/Consultant: Editable dropdown --}}
+                        @if(auth()->user()->isAdmin() || auth()->user()->isConsultant())
+                            <form method="POST" action="{{ route('job.application.updateStatus', $application) }}" class="inline-flex items-center gap-2">
+                                @csrf
+                                @method('PUT')
+                                Status: 
+                                <select name="status" class="border-gray-300 rounded-md text-sm px-2 py-1">
+                                    <option value="pending" {{ $application->status === 'pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="reviewing" {{ $application->status === 'reviewing' ? 'selected' : '' }}>Reviewing</option>
+                                    <option value="shortlist" {{ $application->status === 'shortlist' ? 'selected' : '' }}>Shortlisted</option>
+                                    <option value="accepted" {{ $application->status === 'accepted' ? 'selected' : '' }}>Accepted</option>
+                                    <option value="rejected" {{ $application->status === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                                </select>
+                                <button type="submit"
+                                        class="bg-[#04215c] text-white px-3 py-1 rounded-md text-sm hover:bg-[#06318a] transition">
+                                    Update
+                                </button>
+                            </form>
+                        @else
+                            Status:
+                            <span class="inline-block align-middle px-2 py-0.5 rounded-full text-xs font-semibold
+                                         {{ ($application->status ?? 'pending') === 'shortlist' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' }}">
+                                {{ ucfirst($application->status ?? 'pending') }}
+                            </span>
+                        @endif
                     </p>
                 </div>
+
                 <div class="flex gap-2">
                     <a href="{{ route('jobs.show', $job) }}"
                        class="inline-block px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 transition">

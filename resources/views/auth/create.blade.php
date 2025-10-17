@@ -39,6 +39,7 @@
                     <p class="text-sm font-semibold text-blue-800 mb-2">Test Accounts:</p>
                     <div class="text-xs text-blue-700 space-y-1">
                         <p><strong>Admin:</strong> admin@hr-software.com / password</p>
+                        <p><strong>Consultant:</strong> consultant@hr-software.com / password</p>
                         <p><strong>Employer:</strong> employer@hr-software.com / password</p>
                         <p><strong>Candidate:</strong> candidate@hr-software.com / password</p>
                     </div>

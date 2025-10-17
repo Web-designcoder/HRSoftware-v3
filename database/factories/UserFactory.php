@@ -55,6 +55,16 @@ class UserFactory extends Factory
     }
 
     /**
+     * Indicate that the user is a consultant.
+     */
+    public function consultant(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'consultant',
+        ]);
+    }
+
+    /**
      * Indicate that the user is an employer.
      */
     public function employer(): static
