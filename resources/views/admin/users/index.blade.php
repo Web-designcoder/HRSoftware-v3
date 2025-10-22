@@ -49,8 +49,8 @@
             <form method="GET" class="ml-auto flex items-center gap-2">
                 <input type="hidden" name="role" value="{{ $role }}">
                 <input name="q" value="{{ $q }}" placeholder="Search name or email"
-                       class="border border-gray-300 rounded-md px-3 py-2 text-sm w-64" />
-                <button class="px-3 py-2 rounded-md border border-gray-300 text-sm hover:bg-gray-50">Search</button>
+                       class="border bg-white border-gray-300 rounded-md px-3 py-2 text-sm w-64" />
+                <button class="px-3 py-2 bg-white rounded-md border border-gray-300 text-sm hover:bg-gray-50">Search</button>
                 @if($q)
                     <a href="{{ route('admin.users.index', ['role' => $role]) }}" class="text-sm text-gray-600 hover:underline">Clear</a>
                 @endif

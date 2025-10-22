@@ -14,45 +14,7 @@
 
         {{-- Optional nav --}}
         @if($showNav)
-        <header class="bg-white p-5 shadow-md sticky top-0 z-10">
-            <nav class="flex justify-between text-lg font-medium items-center">
-                <ul class="flex space-x-2">
-                    <li>
-                        <a href="{{ route('dashboard') }}"><img src="/images/projecthr-logo.webp" alt="Logo" class="max-w-[300px]"></a>
-                    </li>
-                </ul>
-                <ul class="flex space-x-6 items-center">
-                    @auth
-                        <li><a href="{{route('dashboard')}}">Dashboard</a></li>
-
-                        @if(auth()->user()->isCandidate())
-                            <li><a href="{{route('jobs.index')}}">Jobs</a></li>
-                        @endif
-                        
-                        @if(auth()->user()->isEmployer())
-                            <li><a href="{{route('jobs.index')}}">Campaigns</a></li>
-                        @endif
-                        
-                        @if(auth()->user()->isCandidate())
-                            <li><a href="{{route('my-job-applications.index')}}">My Applications</a></li>
-                        @endif
-                        
-                        <li>
-                            <a href="{{route('account.edit')}}">
-                                @if(auth()->user()->profile_picture)
-                                    <img src="{{ asset('storage/'.auth()->user()->profile_picture) }}" class="mt-2 h-7 w-7 rounded-full object-cover">
-                                @else
-                                    Account
-                                @endif
-                            </a>
-                        </li>
-                        <li><form action="{{route('auth.destroy')}}" method="POST"> @csrf @method('DELETE') <button type="submit">Logout</button></form></li>
-                    @else
-                        <li><a href="{{route('login')}}">Sign in</a></li>
-                    @endauth
-                </ul>
-            </nav>
-        </header>
+            <x-navbar/>
         @endif
 
         <div id="wrapper" class="mx-auto mt-10 max-w-[1400px]">

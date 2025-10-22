@@ -9,11 +9,7 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminUserController extends Controller
 {
-    public function __construct()
-    {
-        // Admin (superadmin) only
-        $this->middleware(['auth', 'terms.accepted', 'role:admin']);
-    }
+    // Middleware handled via routes/web.php
 
     public function index(Request $request)
     {
