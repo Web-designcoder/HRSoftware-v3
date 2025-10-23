@@ -1,16 +1,20 @@
 <x-layout>
-    <x-breadcrumbs class="mb-4" :links="['Jobs' => route('jobs.index'), $job->title => '#']" />
-
     @php
         $user = auth()->user();
     @endphp
 
-    @if($user && ($user->isAdmin()))
-        <a href="{{ url('/admin/jobs/' . $job->id . '/applications/create') }}"
-        class="inline-block px-4 py-2 bg-[#04215c] text-white rounded-md hover:bg-[#06318a] transition">
-            + Create Application
-        </a>
-    @endif
+    <div class="flex justify-between items-center mb-4">
+        <x-breadcrumbs :links="['Jobs' => route('jobs.index'), $job->title => '#']" />
+
+        @auth
+            @if($user->isAdmin())
+                <a href="{{ url('/admin/jobs/' . $job->id . '/applications/create') }}"
+                class="inline-block px-4 py-2 bg-[#04215c] text-white rounded-md hover:bg-[#06318a] transition">
+                    + Create Application
+                </a>
+            @endif
+        @endauth
+    </div>
 
     {{-- ====================== CANDIDATE VIEW ====================== --}}
     @if($user && $user->isCandidate())

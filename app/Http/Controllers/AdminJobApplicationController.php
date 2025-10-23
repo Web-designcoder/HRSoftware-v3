@@ -155,4 +155,36 @@ class AdminJobApplicationController extends Controller
             ->route('admin.job.application.show', [$job->id, $application->id])
             ->with('success', 'Application created successfully.');
     }
+
+    public function createStandalone()
+    {
+        $jobs = \App\Models\Job::with('employer')->orderBy('title')->get(['id', 'title', 'employer_id']);
+        $candidates = \App\Models\User::where('role', 'candidate')->orderBy('name')->get(['id', 'name', 'email']);
+
+        return view('admin.applications.create-standalone', compact('jobs', 'candidates'));
+    }
+
+    public function storeStandalone(Request $request)
+    {
+        $validated = $request->validate([
+            'job_id' => 'required|exists:jobs,id',
+            'user_id' => 'required|exists:users,id',
+            'cv' => 'nullable|file|mimes:pdf,doc,docx|max:4096',
+            'video_intro' => 'nullable|file|mimes:mp4,mov,avi,mkv|max:10240',
+            // add competency question validations here
+        ]);
+
+        if ($request->hasFile('cv')) {
+            $validated['cv'] = $request->file('cv')->store('documents');
+        }
+
+        if ($request->hasFile('video_intro')) {
+            $validated['video_intro'] = $request->file('video_intro')->store('videos');
+        }
+
+        \App\Models\JobApplication::create($validated);
+
+        return redirect()->route('admin.applications.index')->with('success', 'Application created successfully.');
+    }
+
 }

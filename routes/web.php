@@ -10,7 +10,8 @@ use App\Http\Controllers\MyJobApplicationController;
 use App\Http\Controllers\TermsController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\EmployerJobApplicationController;
-use App\Http\Controllers\AdminUserController; // ← ADDED
+use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AdminJobApplicationController;
 use Illuminate\Support\Facades\Route;
 
 /* ───────────────────────────────────────────────
@@ -109,6 +110,12 @@ Route::middleware('auth')->group(function () {
             Route::get('/admin/jobs/{job}/edit', [JobController::class, 'edit'])->name('jobs.edit');
             Route::put('/admin/jobs/{job}', [JobController::class, 'update'])->name('jobs.update');
             Route::delete('/admin/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
+
+            Route::get('admin/applications/create', [AdminJobApplicationController::class, 'createStandalone'])
+                ->name('admin.applications.createStandalone');
+
+            Route::post('admin/applications/store', [AdminJobApplicationController::class, 'storeStandalone'])
+                ->name('admin.applications.storeStandalone');
         });
 
         /* ───────────────────────────────
