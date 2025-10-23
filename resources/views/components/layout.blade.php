@@ -17,7 +17,7 @@
             <x-navbar/>
         @endif
 
-        <div id="wrapper" class="mx-auto mt-10 max-w-[1400px]">
+        <div id="wrapper" class="mx-auto my-10 max-w-[1400px] min-h-[76vh] {{ $bodyClass }}">
 
             {{-- Flash messages --}}
             @if(session('success'))
@@ -36,5 +36,9 @@
             {{-- Page content --}}
             {{ $slot }}
         </div>
+
+        <footer class="bg-white text-center p-[17px]">
+            <p>Copyright © {{date('Y')}} Project HR. All rights reserved || Software by <a href="https://www.webwizards.com.au/" target="_blank">WW</a></p>
+        </footer>
     </body>
 </html>

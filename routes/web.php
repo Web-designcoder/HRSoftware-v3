@@ -81,16 +81,34 @@ Route::middleware('auth')->group(function () {
            ADMIN & CONSULTANT ROUTES
         ─────────────────────────────── */
         Route::middleware('role:admin,consultant')->group(function () {
+            // Admin & Consultant: Update job application status
+            Route::put('/applications/{application}/update-status', [JobApplicationController::class, 'updateStatus'])
+                ->name('job.application.updateStatus');
+
+            // ⚠️ IMPORTANT: Keep "create" route ABOVE the dynamic {jobApplication} route below!
+            // Otherwise Laravel will interpret "create" as a {jobApplication} parameter and return 404.
+            Route::get('/admin/jobs/{job}/applications/create', [App\Http\Controllers\AdminJobApplicationController::class, 'create'])
+                ->name('admin.applications.create');
+
+            // Store application
+            Route::post('/admin/jobs/{job}/applications', [App\Http\Controllers\AdminJobApplicationController::class, 'store'])
+                ->name('admin.applications.store');
+
+            // Admin/Consultant route (reuse same controller)
+            Route::get('/admin/jobs/{job}/applications/{jobApplication}', [EmployerJobApplicationController::class, 'show'])
+                ->name('admin.job.application.show');
+
+            // Admin applications list
+            Route::get('/admin/applications', [App\Http\Controllers\AdminJobApplicationController::class, 'index'])
+                ->name('admin.applications.index');
+
+            // Job CRUD
             Route::get('/admin/jobs', [JobController::class, 'index'])->name('admin.jobs.index');
             Route::get('/admin/jobs/create', [JobController::class, 'create'])->name('jobs.create');
             Route::post('/admin/jobs', [JobController::class, 'store'])->name('jobs.store');
             Route::get('/admin/jobs/{job}/edit', [JobController::class, 'edit'])->name('jobs.edit');
             Route::put('/admin/jobs/{job}', [JobController::class, 'update'])->name('jobs.update');
             Route::delete('/admin/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
-
-            // Admin & Consultant: Update job application status
-            Route::put('/applications/{application}/update-status', [JobApplicationController::class, 'updateStatus'])
-                ->name('job.application.updateStatus');
         });
 
         /* ───────────────────────────────

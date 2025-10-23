@@ -12,14 +12,23 @@
         @if(auth()->user()->isAdmin() || auth()->user()->isConsultant())
         <ul class="flex space-x-6 items-center">
                 <li><a href="{{route('dashboard')}}">Dashboard</a></li>
-                <x-submenu 
-                    title="Campaigns" 
-                    :links="[
-                        'All Campaigns' => route('jobs.index'),
-                        'Create New' => route('jobs.create'),
-                    ]" 
-                />
-                <li><a href="{{route('admin.users.index')}}">Users</a></li>
+                @php
+    $navbarCampaignLinks = [
+        'All Campaigns' => route('jobs.index'),
+        'Create New' => route('jobs.create'),
+    ];
+@endphp
+<x-submenu title="Campaigns" :links="$navbarCampaignLinks" />
+
+                <li><a href="{{ route('admin.applications.index') }}">Applications</a></li>
+                @php
+    $navbarUserLinks = [
+        'All Users' => route('admin.users.index'),
+        'Create New User' => route('admin.users.create'),
+    ];
+@endphp
+<x-submenu title="Users" :links="$navbarUserLinks" />
+
                 <li>
                     <a href="{{route('account.edit')}}">
                         @if(auth()->user()->profile_picture)

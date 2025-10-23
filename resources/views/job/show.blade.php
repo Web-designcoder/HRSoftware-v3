@@ -5,6 +5,13 @@
         $user = auth()->user();
     @endphp
 
+    @if($user && ($user->isAdmin()))
+        <a href="{{ url('/admin/jobs/' . $job->id . '/applications/create') }}"
+        class="inline-block px-4 py-2 bg-[#04215c] text-white rounded-md hover:bg-[#06318a] transition">
+            + Create Application
+        </a>
+    @endif
+
     {{-- ====================== CANDIDATE VIEW ====================== --}}
     @if($user && $user->isCandidate())
         <div class="mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -202,7 +209,11 @@
                                         </div>
                                     </div>
 
+                                    @if($user && ($user->isAdmin()))
+                                    <a href="{{ route('admin.job.application.show', [$job, $application]) }}"
+                                    @elseif ($user && ($user->isEmployer()))
                                     <a href="{{ route('employer.job.application.show', [$job, $application]) }}"
+                                    @endif
                                        class="inline-block px-4 py-2 bg-[#04215c] text-white text-sm rounded-md hover:bg-[#06318a] transition">
                                         View Candidate
                                     </a>
