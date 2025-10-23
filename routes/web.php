@@ -128,6 +128,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/{user}/edit', [AdminUserController::class, 'edit'])->name('edit');
             Route::put('/{user}', [AdminUserController::class, 'update'])->name('update');
             Route::delete('/{user}', [AdminUserController::class, 'destroy'])->name('destroy');
+            Route::get('/candidates', [AdminUserController::class, 'candidates'])->name('candidates');
+            Route::get('/clients', [AdminUserController::class, 'clients'])->name('clients');
         });
     });
 });

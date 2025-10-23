@@ -30,7 +30,9 @@
                     title="Users" 
                     :links="[
                         'All Users' => route('admin.users.index'),
-                        'Create New User' => route('admin.users.create')
+                        'Create New User' => route('admin.users.create'),
+                        'View Clients' => route('admin.users.clients'),
+                        'View Candidates' => route('admin.users.candidates')
                     ]" 
                 />
                 <li>

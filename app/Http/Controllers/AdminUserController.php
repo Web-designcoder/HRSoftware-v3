@@ -134,4 +134,109 @@ class AdminUserController extends Controller
             ->route('admin.users.index')
             ->with('success', 'User deleted successfully.');
     }
+
+    public function clients(Request $request)
+    {
+        $query = \App\Models\User::where('role', 'employer');
+
+        // Apply filters
+        if ($request->filled('job_title')) {
+            $query->where('job_title', $request->job_title);
+        }
+        if ($request->filled('industry')) {
+            $query->where('industry', $request->industry);
+        }
+        if ($request->filled('country')) {
+            $query->where('country', $request->country);
+        }
+        if ($request->filled('city')) {
+            $query->where('city', $request->city);
+        }
+        if ($request->filled('office_number')) {
+            $query->where('office_number', 'like', "%{$request->office_number}%");
+        }
+        if ($request->filled('office_email')) {
+            $query->where('email', 'like', "%{$request->office_email}%");
+        }
+        if ($request->filled('has_attachment') && $request->has_attachment === '1') {
+            $query->whereNotNull('attachment');
+        }
+
+        // Keyword (broad)
+        if ($request->filled('keyword')) {
+            $q = $request->keyword;
+            $query->where(function ($sub) use ($q) {
+                $sub->where('company_name', 'like', "%$q%")
+                    ->orWhere('name', 'like', "%$q%")
+                    ->orWhere('email', 'like', "%$q%")
+                    ->orWhere('office_number', 'like', "%$q%");
+            });
+        }
+
+        $clients = $query->latest()->paginate(20)->withQueryString();
+
+        // Distinct dropdown values
+        $jobTitles = collect();
+
+        $industries = collect();
+
+        $countries = \App\Models\User::where('role', 'employer')
+            ->whereNotNull('country')->distinct()->orderBy('country')->pluck('country');
+
+        $cities = \App\Models\User::where('role', 'employer')
+            ->whereNotNull('city')->distinct()->orderBy('city')->pluck('city');
+
+        return view('admin.users.clients', compact('clients', 'jobTitles', 'industries', 'countries', 'cities'));
+    }
+
+
+
+    public function candidates(Request $request)
+    {
+        $query = \App\Models\User::where('role', 'candidate');
+
+        // Filters
+        if ($request->filled('industry')) {
+            $query->where('industry', $request->industry);
+        }
+        if ($request->filled('city')) {
+            $query->where('city', $request->city);
+        }
+        if ($request->filled('country')) {
+            $query->where('country', $request->country);
+        }
+        if ($request->filled('job_title')) {
+            $query->where('desired_job_title', $request->job_title);
+        }
+        if ($request->filled('keyword')) {
+            $q = $request->keyword;
+            $query->where(function($sub) use ($q) {
+                $sub->where('name', 'like', "%$q%")
+                    ->orWhere('email', 'like', "%$q%")
+                    ->orWhere('desired_job_title', 'like', "%$q%");
+            });
+        }
+
+        $candidates = $query->latest()->paginate(20)->withQueryString();
+
+        // Dropdown options (distinct values)
+        $industries = collect();
+
+        $cities = \App\Models\User::where('role', 'candidate')
+                        ->whereNotNull('city')
+                        ->distinct()
+                        ->orderBy('city')
+                        ->pluck('city');
+
+        $countries = \App\Models\User::where('role', 'candidate')
+                        ->whereNotNull('country')
+                        ->distinct()
+                        ->orderBy('country')
+                        ->pluck('country');
+
+        $jobTitles = collect();
+
+        return view('admin.users.candidates', compact('candidates', 'industries', 'cities', 'countries', 'jobTitles'));
+    }
+
 }
