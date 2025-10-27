@@ -11,42 +11,57 @@ class EmployerController extends Controller
     use AuthorizesRequests;
 
     /**
-     * Show the form for creating employer profile
+     * Show the form for creating an employer company
      */
     public function create()
     {
-        // Redirect if already has employer profile
-        if (auth()->user()->employer) {
+        $user = auth()->user();
+
+        // ✅ Updated relationship
+        if ($user->employers()->exists()) {
             return redirect()->route('dashboard')
-                ->with('info', 'You already have an employer profile.');
+                ->with('info', 'You are already linked to an employer company.');
         }
 
         return view('employer.create');
     }
 
     /**
-     * Store employer profile
+     * Store a new employer company and link the user to it.
      */
     public function store(Request $request)
     {
-        // Validate
         $validated = $request->validate([
-            'company_name' => 'required|min:3|unique:employers,company_name',
-            'company_description' => 'nullable|string',
-            'website' => 'nullable|url',
-            'industry' => 'nullable|string',
-            'company_logo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'name' => 'required|min:3|unique:employers,name',
+            'phone' => 'nullable|string|max:50',
+            'email' => 'nullable|email',
+            'address_line1' => 'nullable|string|max:255',
+            'address_line2' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'postcode' => 'nullable|string|max:20',
+            'country' => 'nullable|string|max:100',
+            'industry' => 'nullable|string|max:100',
         ]);
 
-        // Handle logo upload
-        if ($request->hasFile('company_logo')) {
-            $validated['company_logo'] = $request->file('company_logo')->store('logos', 'public');
-        }
+        // ✅ Create company (employer)
+        $employer = Employer::create($validated);
 
-        // Create employer profile
-        auth()->user()->employer()->create($validated);
+        // ✅ Link current user as a contact
+        auth()->user()->employers()->attach($employer->id, [
+            'position' => 'Owner / Primary Contact',
+            'permission_level' => 'level3',
+        ]);
 
         return redirect()->route('dashboard')
-            ->with('success', 'Your employer profile has been created!');
+            ->with('success', 'Your employer company has been created and linked to your account!');
+    }
+
+    /**
+     * Optional: show employer dashboard/profile page
+     */
+    public function show(Employer $employer)
+    {
+        $this->authorize('view', $employer);
+        return view('employer.show', compact('employer'));
     }
 }

@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Employer;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class EmployerFactory extends Factory
@@ -12,22 +11,26 @@ class EmployerFactory extends Factory
 
     public function definition(): array
     {
+        $cities = [
+            ['city' => 'Perth', 'postcode' => '6000'],
+            ['city' => 'Sydney', 'postcode' => '2000'],
+            ['city' => 'Melbourne', 'postcode' => '3000'],
+            ['city' => 'Brisbane', 'postcode' => '4000'],
+            ['city' => 'Adelaide', 'postcode' => '5000'],
+        ];
+        $c = $cities[array_rand($cities)];
+
         return [
-            'company_name' => fake()->company(),
-            'company_description' => fake()->paragraph(3),
-            'website' => fake()->optional()->url(),
-            'industry' => fake()->randomElement([
-                'Technology',
-                'Healthcare',
-                'Finance',
-                'Education',
-                'Retail',
-                'Manufacturing',
-                'Consulting',
-                'Real Estate',
-                'Marketing',
-                'Construction'
-            ]),
+            // Updated to new schema (no company_name)
+            'name'          => fake()->company() . ' Pty Ltd',
+            'phone'         => fake()->phoneNumber(),
+            'email'         => fake()->companyEmail(),
+            'address_line1' => fake()->streetAddress(),
+            'address_line2' => null,
+            'city'          => $c['city'],
+            'postcode'      => $c['postcode'],
+            'country'       => 'Australia',
+            'industry'      => fake()->randomElement(['IT','Finance','Healthcare','Construction','Education','Marketing']),
         ];
     }
 }

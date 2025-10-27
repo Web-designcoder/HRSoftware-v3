@@ -3,7 +3,7 @@
 
     <div class="mx-auto">
         <!-- Filters -->
-        <x-card class="mb-6 text-sm">
+        {{-- <x-card class="mb-6 text-sm">
             <form id="filtering-form" action="{{ route('jobs.index') }}" method="GET" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Search -->
@@ -39,7 +39,7 @@
                     <x-button class="w-full md:w-auto">Filter</x-button>
                 </div>
             </form>
-        </x-card>
+        </x-card> --}}
 
         <!-- Job Grid -->
         @if ($jobs->isEmpty())

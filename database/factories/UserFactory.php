@@ -10,77 +10,56 @@ use Illuminate\Support\Str;
 class UserFactory extends Factory
 {
     protected static ?string $password = null;
-
     protected $model = User::class;
 
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
-            'role' => 'candidate', // Default role
-            'salutation' => fake()->randomElement(['Mr', 'Ms', 'Mrs', 'Dr', null]),
+            'salutation' => fake()->randomElement(['Mr', 'Ms', 'Mrs', 'Dr']),
             'first_name' => fake()->firstName(),
-            'last_name' => fake()->lastName(),
-            'phone' => fake()->optional()->phoneNumber(),
-            'address_line1' => fake()->optional()->streetAddress(),
+            'last_name'  => fake()->lastName(),
+            'name'       => null, // auto-filled by model boot
+            'email'      => fake()->unique()->safeEmail(),
+            'email_verified_at' => now(),
+            'password'   => static::$password ??= Hash::make('password'),
+            'role'       => 'candidate',
+            'phone'      => fake()->phoneNumber(),
+            'address_line1' => fake()->streetAddress(),
             'address_line2' => fake()->optional()->secondaryAddress(),
-            'city' => fake()->city(),
-            'postcode' => fake()->postcode(),
-            'country' => fake()->country(),
+            'city'       => fake()->randomElement(['Perth', 'Sydney', 'Melbourne', 'Brisbane', 'Adelaide']),
+            'postcode'   => fake()->postcode(),
+            'country'    => 'Australia',
+            'remember_token' => Str::random(10),
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
+    /** Unverified email */
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
+        return $this->state(fn() => ['email_verified_at' => null]);
     }
 
-    /**
-     * Indicate that the user is an admin.
-     */
+    /** Admin */
     public function admin(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'role' => 'admin',
-        ]);
+        return $this->state(fn() => ['role' => 'admin']);
     }
 
-    /**
-     * Indicate that the user is a consultant.
-     */
+    /** Consultant */
     public function consultant(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'role' => 'consultant',
-        ]);
+        return $this->state(fn() => ['role' => 'consultant']);
     }
 
-    /**
-     * Indicate that the user is an employer.
-     */
+    /** Employer contact */
     public function employer(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'role' => 'employer',
-        ]);
+        return $this->state(fn() => ['role' => 'employer']);
     }
 
-    /**
-     * Indicate that the user is a candidate.
-     */
+    /** Candidate */
     public function candidate(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'role' => 'candidate',
-        ]);
+        return $this->state(fn() => ['role' => 'candidate']);
     }
 }

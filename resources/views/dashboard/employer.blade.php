@@ -3,13 +3,18 @@
         <h1 class="text-2xl font-bold mb-4">Employer Dashboard</h1>
         <p>Welcome back, {{ auth()->user()->name }}!</p>
 
+        @php
+            $employer = auth()->user()->primaryEmployer();
+            $employerId = optional($employer)->id;
+        @endphp
+
         <div id="dashboard" class="text-white">
             <!-- Column 1: Welcome Cards -->
             <div class="column column-2-3">
                 <x-card class="text-slate-700 text-center flex justify-center flex-col items-center text-3xl">
-                    <h2>{{ auth()->user()->employer->company_name ?? auth()->user()->name }}</h2>
-                    @if(auth()->user()->employer)
-                        <p class="text-sm text-slate-500">{{ auth()->user()->employer->industry ?? 'Employer' }}</p>
+                    <h2>{{ $employer?->name ?? auth()->user()->name }}</h2>
+                    @if($employer)
+                        <p class="text-sm text-slate-500">{{ $employer->industry ?? 'Employer' }}</p>
                     @endif
                 </x-card>
 
@@ -34,8 +39,6 @@
                     </div>
 
                     @php
-                        $employerId = optional(auth()->user()->employer)->id;
-
                         $campaigns = \App\Models\Job::query()
                             ->with(['consultant', 'employer'])
                             ->withCount('jobApplications')
@@ -52,23 +55,16 @@
                                     <!-- Logo -->
                                     <div class="flex justify-center mb-3">
                                         @if($campaign->company_logo)
-                                            <img src="{{ asset('storage/' . $campaign->company_logo) }}" alt="{{ $campaign->company }}" class="w-16 h-16 object-contain rounded">
+                                            <img src="{{ asset('storage/' . $campaign->company_logo) }}" alt="{{ $campaign->employer->name ?? 'Company' }}" class="w-16 h-16 object-contain rounded">
                                         @else
                                             <div class="w-16 h-16 bg-white/20 rounded flex items-center justify-center text-2xl font-bold">
-                                                {{ substr($campaign->company ?? 'C', 0, 1) }}
+                                                {{ substr($campaign->employer->name ?? 'C', 0, 1) }}
                                             </div>
                                         @endif
                                     </div>
 
                                     <!-- Job Title -->
                                     <h3 class="text-base font-bold mb-2 text-center">{{ $campaign->title }}</h3>
-
-                                    {{-- <!-- Status -->
-                                    <div class="mb-2 text-center">
-                                        <span class="bg-white/20 px-3 py-1 rounded-full text-xs">
-                                            {{ ucfirst($campaign->status ?? 'active') }}
-                                        </span>
-                                    </div> --}}
 
                                     <!-- Candidates Count -->
                                     <p class="text-xs mb-1 text-center opacity-90">
@@ -107,7 +103,7 @@
             <div class="column column-2-3">
                 <x-card class="!bg-gradient-to-br from-[#1025a1] to-[#3b76c4] p-6 flex flex-col justify-center">
                     <h2 class="text-2xl font-bold mb-4">Quick Stats</h2>
-                    @if(auth()->user()->employer)
+                    @if($employer)
                         @php
                             $campaignCount = \App\Models\Job::where('employer_id', $employerId)->count();
                             $candidateCount = \App\Models\JobApplication::whereHas('job', function ($q) use ($employerId) {

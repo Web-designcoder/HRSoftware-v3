@@ -67,6 +67,62 @@
                 </select>
             </div>
 
+            @if(auth()->user()->isAdmin())
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Assign Employer (Company)</label>
+                    <select name="employer_id"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">Select Employer</option>
+                        @foreach($employers as $employer)
+                            <option value="{{ $employer->id }}"
+                                @selected(old('employer_id', isset($job) ? $job->employer_id : null) == $employer->id)>
+                                {{ $employer->name }} — {{ $employer->city }}, {{ $employer->country }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('employer_id') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+                </div>
+            @endif
+
+            @if(auth()->user()->isAdmin())
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Assign Consultant</label>
+                    <select name="consultant_id"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">Select Consultant</option>
+                        @foreach($consultants as $consultant)
+                            <option value="{{ $consultant->id }}"
+                                @selected(old('consultant_id', isset($job) ? $job->consultant_id : null) == $consultant->id)>
+                                {{ $consultant->first_name }} {{ $consultant->last_name }} ({{ $consultant->email }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('consultant_id') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+                </div>
+            @elseif(auth()->user()->isConsultant())
+                <input type="hidden" name="consultant_id" value="{{ auth()->id() }}">
+            @endif
+
+            @if(auth()->user()->isAdmin())
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Assign Candidates (who can see this job)</label>
+                    <select name="candidate_ids[]" multiple
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 h-40">
+                        @php
+                            $selected = old('candidate_ids', isset($job) ? $job->assignedCandidates->pluck('id')->toArray() : []);
+                        @endphp
+                        @foreach($candidates as $candidate)
+                            <option value="{{ $candidate->id }}"
+                                @selected(in_array($candidate->id, $selected))>
+                                {{ $candidate->first_name }} {{ $candidate->last_name }} ({{ $candidate->email }})
+                            </option>
+                        @endforeach
+                    </select>
+                    <small class="text-gray-500 text-sm">Hold Ctrl (or Cmd) to select multiple candidates.</small>
+                    @error('candidate_ids.*') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+                </div>
+            @endif
+
             <!-- Date Posted -->
             <div>
                 <label class="block text-sm font-medium text-gray-700">Date Posted</label>

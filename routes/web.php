@@ -69,6 +69,8 @@ Route::middleware('auth')->group(function () {
             // Employer profile setup
             Route::get('/employer/create', [EmployerController::class, 'create'])->name('employer.create');
             Route::post('/employer', [EmployerController::class, 'store'])->name('employer.store');
+            Route::get('/employer/{employer}', [EmployerController::class, 'show'])->name('employer.show');
+
 
             // ⛔ Disable employer job CRUD for now (read-only)
             Route::get('/my-jobs', [MyJobController::class, 'index'])->name('my-jobs.index');

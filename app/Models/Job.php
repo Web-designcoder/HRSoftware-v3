@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -28,7 +29,7 @@ class Job extends Model
         'managed_by',
         'company_logo',
         'campaign_documents',
-        'consultant_id', // ✅ added new field
+        'consultant_id',
     ];
 
     protected $casts = [
@@ -53,8 +54,13 @@ class Job extends Model
 
     public function consultant(): BelongsTo
     {
-        // Consultant/Admin user assigned to manage this job campaign
         return $this->belongsTo(User::class, 'consultant_id');
+    }
+
+    // Visibility list: candidates allowed to see this job
+    public function assignedCandidates(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'job_user', 'job_id', 'user_id')->withTimestamps();
     }
 
     /* ───── Scopes ───── */
@@ -67,7 +73,7 @@ class Job extends Model
                     $query->where('title', 'like', "%{$search}%")
                         ->orWhere('description', 'like', "%{$search}%")
                         ->orWhereHas('employer', fn($q) =>
-                            $q->where('company_name', 'like', "%{$search}%")
+                            $q->where('name', 'like', "%{$search}%")
                         );
                 });
             })
@@ -83,6 +89,35 @@ class Job extends Model
             ->when($filters['category'] ?? null, fn($q, $cat) =>
                 $q->where('category', $cat)
             );
+    }
+
+    public function scopeVisibleTo(Builder $query, ?User $user): Builder
+    {
+        if (!$user) {
+            return $query->whereRaw('1=0'); // guests see nothing
+        }
+
+        if ($user->isAdmin()) {
+            return $query;
+        }
+
+        if ($user->isConsultant()) {
+            return $query->where('consultant_id', $user->id);
+        }
+
+        if ($user->isEmployer()) {
+            // Any job that belongs to any employer (company) this user is linked to
+            return $query->whereIn('employer_id', $user->employers()->pluck('employers.id'));
+        }
+
+        if ($user->isCandidate()) {
+            // Only jobs explicitly assigned to this candidate
+            return $query->whereHas('assignedCandidates', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+
+        return $query->whereRaw('1=0');
     }
 
     /* ───── Helpers ───── */

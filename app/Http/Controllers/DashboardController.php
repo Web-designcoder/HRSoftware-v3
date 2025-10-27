@@ -69,22 +69,22 @@ class DashboardController extends Controller
     private function employerDashboard()
     {
         $user = auth()->user();
-        
-        // Check if employer profile exists
-        if (!$user->employer) {
-            return redirect()->route('employer.create')
-                ->with('info', 'Please create your employer profile first.');
-        }
 
-        $employer = $user->employer;
+        // ✅ Check new relationship correctly
+        $employer = $user->employers()->first();
+
+        if (!$employer) {
+            return redirect()->route('employer.create')
+                ->with('info', 'Please create your employer company first.');
+        }
 
         $stats = [
             'total_jobs' => $employer->jobs()->count(),
             'active_jobs' => $employer->jobs()->whereNull('deleted_at')->count(),
-            'total_applications' => JobApplication::whereHas('job', function ($q) use ($employer) {
+            'total_applications' => \App\Models\JobApplication::whereHas('job', function ($q) use ($employer) {
                 $q->where('employer_id', $employer->id);
             })->count(),
-            'pending_applications' => JobApplication::whereHas('job', function ($q) use ($employer) {
+            'pending_applications' => \App\Models\JobApplication::whereHas('job', function ($q) use ($employer) {
                 $q->where('employer_id', $employer->id);
             })->where('status', 'pending')->count(),
         ];
@@ -95,7 +95,7 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        $recent_applications = JobApplication::with(['job', 'user'])
+        $recent_applications = \App\Models\JobApplication::with(['job', 'user'])
             ->whereHas('job', function ($q) use ($employer) {
                 $q->where('employer_id', $employer->id);
             })
@@ -103,8 +103,9 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
-        return view('dashboard.employer', compact('stats', 'my_jobs', 'recent_applications'));
+        return view('dashboard.employer', compact('stats', 'my_jobs', 'recent_applications', 'employer'));
     }
+
 
     /**
      * Candidate Dashboard

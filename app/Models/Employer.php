@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Employer extends Model
@@ -12,19 +12,25 @@ class Employer extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'company_name',
-        'company_description',
-        'company_logo',
-        'website',
+        'name',
+        'phone',
+        'email',
+        'address_line1',
+        'address_line2',
+        'city',
+        'postcode',
+        'country',
         'industry',
     ];
 
     /* ───── Relationships ───── */
 
-    public function user(): BelongsTo
+    // Company contacts (users with role=employer, but relation is generic users)
+    public function users(): BelongsToMany
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsToMany(User::class, 'employer_user')
+            ->withPivot(['position', 'permission_level'])
+            ->withTimestamps();
     }
 
     public function jobs(): HasMany
@@ -33,9 +39,9 @@ class Employer extends Model
     }
 
     /* ───── Helpers ───── */
-
     public function getCompanyLogoUrlAttribute(): ?string
     {
-        return $this->company_logo ? asset('storage/' . $this->company_logo) : null;
+        // keeping for compatibility if you still upload logos into employers later
+        return null;
     }
 }

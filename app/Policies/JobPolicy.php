@@ -8,55 +8,70 @@ use Illuminate\Auth\Access\Response;
 
 class JobPolicy
 {
-    public function viewAny(?User $user): bool
+    public function viewAny(User $user): bool
     {
-        return true;
+        return in_array($user->role, ['admin', 'consultant', 'employer', 'candidate']);
     }
 
-    public function view(?User $user, Job $job): bool
+    public function view(User $user, Job $job): bool
     {
-        return true;
+        if ($user->role === 'admin') return true;
+
+        if ($user->role === 'consultant' && $user->id === $job->consultant_id) return true;
+
+        if ($user->role === 'employer') {
+            $employerIds = $user->employers()->pluck('employers.id')->toArray();
+            return in_array($job->employer_id, $employerIds, true);
+        }
+
+        if ($user->role === 'candidate' && $job->assignedCandidates()->where('user_id', $user->id)->exists()) {
+            return true;
+        }
+
+        return false;
     }
 
-    // ✅ Only admin or consultant can create
-    public function create(User $user): bool
+    public function create(User $user): bool|Response
     {
-        return in_array($user->role, ['admin', 'consultant']);
+        return in_array($user->role, ['admin', 'consultant'])
+            ? Response::allow()
+            : Response::deny('You are not authorised to create jobs.');
     }
 
-    // ✅ Only admin or assigned consultant can update
     public function update(User $user, Job $job): bool|Response
     {
-        if ($user->role === 'admin') {
-            return true;
-        }
-
-        if ($user->role === 'consultant' && $user->id === $job->consultant_id) {
-            return true;
-        }
+        if ($user->role === 'admin') return true;
+        if ($user->role === 'consultant' && $user->id === $job->consultant_id) return true;
 
         return Response::deny('You are not authorised to update this job.');
     }
 
-    // ✅ Only admin or assigned consultant can delete
-    public function delete(User $user, Job $job): bool
+    public function delete(User $user, Job $job): bool|Response
     {
-        return $user->role === 'admin' || ($user->role === 'consultant' && $user->id === $job->consultant_id);
+        if ($user->role === 'admin') return true;
+        if ($user->role === 'consultant' && $user->id === $job->consultant_id) return true;
+
+        return Response::deny('You are not authorised to delete this job.');
     }
 
-    // Candidates can apply
-    public function apply(User $user, Job $job): bool
+    public function apply(User $user, Job $job): bool|Response
     {
-        return $user->role === 'candidate' && !$job->hasUserApplied($user);
+        if ($user->role !== 'candidate') {
+            return Response::deny('Only candidates can apply to jobs.');
+        }
+
+        if ($job->hasUserApplied($user)) {
+            return Response::deny('You have already applied for this job.');
+        }
+
+        // Candidate must have visibility to the job to apply
+        if (!$job->assignedCandidates()->where('user_id', $user->id)->exists()) {
+            return Response::deny('You are not authorised to apply to this job.');
+        }
+
+        return Response::allow();
     }
 
-    public function restore(User $user, Job $job): bool
-    {
-        return $user->role === 'admin';
-    }
-
-    public function forceDelete(User $user, Job $job): bool
-    {
-        return $user->role === 'admin';
-    }
+    public function restore(User $user, Job $job): bool { return $user->role === 'admin'; }
+    public function forceDelete(User $user, Job $job): bool { return $user->role === 'admin'; }
 }

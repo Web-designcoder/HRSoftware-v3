@@ -11,7 +11,7 @@ class JobApplicationPolicy
      * Determine if the user can view the application.
      * - Admins: can view all
      * - Consultants: can view if assigned to the job
-     * - Employers: can view applications for their own jobs
+     * - Employers: can view applications for their own jobs (via pivot)
      * - Candidates: can view their own applications
      */
     public function view(User $user, JobApplication $application): bool
@@ -26,17 +26,14 @@ class JobApplicationPolicy
             return true;
         }
 
-        // Employers can view applications for their jobs
-        if ($user->isEmployer()
-            && $application->job
-            && $application->job->employer
-            && (int) $application->job->employer->user_id === (int) $user->id) {
-            return true;
+        // ✅ Employers can view if the job belongs to any of their linked companies
+        if ($user->isEmployer()) {
+            $employerIds = $user->employers()->pluck('employers.id')->toArray();
+            return in_array($application->job->employer_id, $employerIds);
         }
 
         // Candidates can view their own applications
-        if ($user->isCandidate()
-            && (int) $application->user_id === (int) $user->id) {
+        if ($user->isCandidate() && (int) $application->user_id === (int) $user->id) {
             return true;
         }
 
@@ -48,12 +45,10 @@ class JobApplicationPolicy
      */
     public function delete(User $user, JobApplication $application): bool
     {
-        // Admins can delete any application
         if ($user->isAdmin()) {
             return true;
         }
 
-        // Candidates can only delete their own applications
         return $user->isCandidate()
             && (int) $application->user_id === (int) $user->id;
     }
@@ -72,18 +67,14 @@ class JobApplicationPolicy
         }
 
         // Consultants can update applications for jobs they manage
-        if ($user->role === 'consultant'
-            && $application->job
-            && (int) $application->job->consultant_id === (int) $user->id) {
+        if ($user->isConsultant() && $application->job->consultant_id === $user->id) {
             return true;
         }
 
-        // Employers can update applications for their jobs
-        if ($user->isEmployer()
-            && $application->job
-            && $application->job->employer
-            && (int) $application->job->employer->user_id === (int) $user->id) {
-            return true;
+        // ✅ Employers can update if they are linked to the employer company
+        if ($user->isEmployer()) {
+            $employerIds = $user->employers()->pluck('employers.id')->toArray();
+            return in_array($application->job->employer_id, $employerIds);
         }
 
         return false;
