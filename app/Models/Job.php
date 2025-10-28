@@ -30,6 +30,13 @@ class Job extends Model
         'company_logo',
         'campaign_documents',
         'consultant_id',
+        // NEW:
+        'terms_candidate',
+        'terms_employer',
+        'employer_intro_video',
+        'candidate_assessment_video',
+        'status',
+        'primary_contact_id',
     ];
 
     protected $casts = [
@@ -63,6 +70,27 @@ class Job extends Model
         return $this->belongsToMany(User::class, 'job_user', 'job_id', 'user_id')->withTimestamps();
     }
 
+    // Employer contacts attached to this job (admin-managed)
+    public function contacts(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'job_contacts', 'job_id', 'user_id')->withTimestamps();
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(JobDocument::class)->orderBy('sort_order');
+    }
+
+    public function requiredDocuments(): HasMany
+    {
+        return $this->hasMany(JobRequiredDocument::class)->orderBy('sort_order');
+    }
+
+    public function questions(): HasMany
+    {
+        return $this->hasMany(JobQuestion::class)->orderBy('sort_order');
+    }
+
     /* ───── Scopes ───── */
 
     public function scopeFilter(Builder $query, array $filters): Builder
@@ -93,25 +121,19 @@ class Job extends Model
 
     public function scopeVisibleTo(Builder $query, ?User $user): Builder
     {
-        if (!$user) {
-            return $query->whereRaw('1=0'); // guests see nothing
-        }
+        if (!$user) return $query->whereRaw('1=0');
 
-        if ($user->isAdmin()) {
-            return $query;
-        }
+        if ($user->isAdmin()) return $query;
 
         if ($user->isConsultant()) {
             return $query->where('consultant_id', $user->id);
         }
 
         if ($user->isEmployer()) {
-            // Any job that belongs to any employer (company) this user is linked to
             return $query->whereIn('employer_id', $user->employers()->pluck('employers.id'));
         }
 
         if ($user->isCandidate()) {
-            // Only jobs explicitly assigned to this candidate
             return $query->whereHas('assignedCandidates', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             });
@@ -139,5 +161,15 @@ class Job extends Model
     public function getCampaignDocumentsUrlAttribute(): ?string
     {
         return $this->campaign_documents ? asset('storage/' . $this->campaign_documents) : null;
+    }
+
+    public function getEmployerIntroVideoUrlAttribute(): ?string
+    {
+        return $this->employer_intro_video ? asset('storage/' . $this->employer_intro_video) : null;
+    }
+
+    public function getCandidateAssessmentVideoUrlAttribute(): ?string
+    {
+        return $this->candidate_assessment_video ? asset('storage/' . $this->candidate_assessment_video) : null;
     }
 }

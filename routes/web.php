@@ -12,6 +12,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\EmployerJobApplicationController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminJobApplicationController;
+use App\Http\Controllers\Admin\JobContactController;
 use Illuminate\Support\Facades\Route;
 
 /* ───────────────────────────────────────────────
@@ -105,19 +106,85 @@ Route::middleware('auth')->group(function () {
             Route::get('/admin/applications', [App\Http\Controllers\AdminJobApplicationController::class, 'index'])
                 ->name('admin.applications.index');
 
-            // Job CRUD
-            Route::get('/admin/jobs', [JobController::class, 'index'])->name('admin.jobs.index');
-            Route::get('/admin/jobs/create', [JobController::class, 'create'])->name('jobs.create');
-            Route::post('/admin/jobs', [JobController::class, 'store'])->name('jobs.store');
-            Route::get('/admin/jobs/{job}/edit', [JobController::class, 'edit'])->name('jobs.edit');
-            Route::put('/admin/jobs/{job}', [JobController::class, 'update'])->name('jobs.update');
-            Route::delete('/admin/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
+            // Job CRUD (dedicated Admin controller)
+            Route::prefix('admin')->name('admin.')->group(function () {
+                Route::resource('jobs', \App\Http\Controllers\Admin\JobController::class);
+            });
 
             Route::get('admin/applications/create', [AdminJobApplicationController::class, 'createStandalone'])
                 ->name('admin.applications.createStandalone');
 
             Route::post('admin/applications/store', [AdminJobApplicationController::class, 'storeStandalone'])
                 ->name('admin.applications.storeStandalone');
+
+            /* ───────────────────────────────
+            ADMIN JOB CANDIDATE MANAGEMENT
+            ─────────────────────────────── */
+            Route::prefix('admin/jobs/{job}')->name('admin.jobs.')->group(function () {
+                Route::post('candidates/attach', [App\Http\Controllers\Admin\JobCandidateController::class, 'attach'])
+                    ->name('candidates.attach');
+                Route::delete('candidates/{candidate}', [App\Http\Controllers\Admin\JobCandidateController::class, 'detach'])
+                    ->name('candidates.detach');
+                Route::patch('candidates/{candidate}/status', [App\Http\Controllers\Admin\JobCandidateController::class, 'updateStatus'])
+                    ->name('candidates.status');
+            });
+
+            /* ───────────────────────────────
+            ADMIN JOB AJAX UPDATES (Details, Overviews, Logo)
+            ─────────────────────────────── */
+            Route::prefix('admin/jobs/{job}')->name('admin.jobs.')->group(function () {
+                Route::patch('details', [\App\Http\Controllers\Admin\JobUpdateController::class, 'updateDetails'])
+                    ->name('details.update');
+                Route::patch('overviews', [\App\Http\Controllers\Admin\JobUpdateController::class, 'updateOverviews'])
+                    ->name('overviews.update');
+                Route::post('logo', [\App\Http\Controllers\Admin\JobUpdateController::class, 'uploadLogo'])
+                    ->name('logo.upload');
+            });
+            
+            Route::prefix('admin/jobs/{job}/contacts')->name('admin.jobs.contacts.')->group(function () {
+                Route::get('/', [JobContactController::class, 'index'])->name('index');
+                Route::post('attach', [JobContactController::class, 'attach'])->name('attach');
+                Route::delete('{user}', [JobContactController::class, 'detach'])->name('detach');
+                Route::patch('primary', [JobContactController::class, 'setPrimary'])->name('primary');
+            });
+            
+            Route::get('/admin/users/clients/json', [AdminUserController::class, 'clientsJson'])
+                ->name('admin.users.clients.json');
+
+            // ====== ADMIN JOB EXTRA AJAX (Videos, Documents, Required Docs, Questions, Terms) ======
+            Route::prefix('admin/jobs/{job}')->name('admin.jobs.')->group(function () {
+                // Videos
+                Route::post('video/employer-intro', [\App\Http\Controllers\Admin\JobUpdateController::class, 'uploadEmployerIntroVideo'])->name('video.employer.upload');
+                Route::delete('video/employer-intro', [\App\Http\Controllers\Admin\JobUpdateController::class, 'deleteEmployerIntroVideo'])->name('video.employer.delete');
+                Route::post('video/candidate-assessment', [\App\Http\Controllers\Admin\JobUpdateController::class, 'uploadCandidateAssessmentVideo'])->name('video.candidate.upload');
+                Route::delete('video/candidate-assessment', [\App\Http\Controllers\Admin\JobUpdateController::class, 'deleteCandidateAssessmentVideo'])->name('video.candidate.delete');
+
+                // Campaign Documents
+                Route::get('documents', [\App\Http\Controllers\Admin\JobUpdateController::class, 'documentsIndex'])->name('documents.index');
+                Route::post('documents', [\App\Http\Controllers\Admin\JobUpdateController::class, 'documentsStore'])->name('documents.store');
+                Route::delete('documents/{document}', [\App\Http\Controllers\Admin\JobUpdateController::class, 'documentsDestroy'])->name('documents.destroy');
+                Route::patch('documents/reorder', [\App\Http\Controllers\Admin\JobUpdateController::class, 'documentsReorder'])->name('documents.reorder');
+
+                // Required Candidate Documents
+                Route::get('required-docs', [\App\Http\Controllers\Admin\JobUpdateController::class, 'reqDocsIndex'])->name('reqdocs.index');
+                Route::post('required-docs', [\App\Http\Controllers\Admin\JobUpdateController::class, 'reqDocsStore'])->name('reqdocs.store');
+                Route::delete('required-docs/{document}', [\App\Http\Controllers\Admin\JobUpdateController::class, 'reqDocsDestroy'])->name('reqdocs.destroy');
+                Route::patch('required-docs/reorder', [\App\Http\Controllers\Admin\JobUpdateController::class, 'reqDocsReorder'])->name('reqdocs.reorder');
+
+                // Questions
+                Route::get('questions', [\App\Http\Controllers\Admin\JobUpdateController::class, 'questionsIndex'])->name('questions.index');
+                Route::post('questions/seed', [\App\Http\Controllers\Admin\JobUpdateController::class, 'questionsSeedDefaults'])->name('questions.seed');
+                Route::post('questions', [\App\Http\Controllers\Admin\JobUpdateController::class, 'questionsCreate'])->name('questions.store');
+                Route::patch('questions/{question}/toggle', [\App\Http\Controllers\Admin\JobUpdateController::class, 'questionsToggle'])->name('questions.toggle');
+                Route::delete('questions/{question}', [\App\Http\Controllers\Admin\JobUpdateController::class, 'questionsDestroy'])->name('questions.destroy');
+                Route::patch('questions/reorder', [\App\Http\Controllers\Admin\JobUpdateController::class, 'questionsReorder'])->name('questions.reorder');
+
+                // Terms
+                Route::get('terms', [\App\Http\Controllers\Admin\JobUpdateController::class, 'termsGet'])->name('terms.get');
+                Route::patch('terms', [\App\Http\Controllers\Admin\JobUpdateController::class, 'termsUpdate'])->name('terms.update');
+            });
+
+
         });
 
         /* ───────────────────────────────
@@ -133,5 +200,6 @@ Route::middleware('auth')->group(function () {
             Route::get('/candidates', [AdminUserController::class, 'candidates'])->name('candidates');
             Route::get('/clients', [AdminUserController::class, 'clients'])->name('clients');
         });
+
     });
 });

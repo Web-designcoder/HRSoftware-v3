@@ -189,6 +189,20 @@ class AdminUserController extends Controller
         return view('admin.users.clients', compact('clients', 'jobTitles', 'industries', 'countries', 'cities'));
     }
 
+    public function clientsJson()
+    {
+        $users = \App\Models\User::where('role', 'employer')
+            ->orderBy('first_name')
+            ->get(['id','first_name','last_name','email']);
+
+        return response()->json([
+            'users' => $users->map(fn($u) => [
+                'id' => $u->id,
+                'name' => trim($u->first_name.' '.$u->last_name),
+                'email' => $u->email,
+            ]),
+        ]);
+    }
 
 
     public function candidates(Request $request)

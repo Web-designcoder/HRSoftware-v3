@@ -5,6 +5,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Laravel Job Board</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -59,8 +60,8 @@
 
                     <div>
                         <p class="uppercase text-xs text-gray-400 px-3 mb-1">Campaigns</p>
-                        <a href="{{ route('jobs.index') }}" class="block py-2 px-3 rounded hover:bg-gray-100">All Campaigns</a>
-                        <a href="{{ route('jobs.create') }}" class="block py-2 px-3 rounded hover:bg-gray-100">Create New</a>
+                        <a href="{{ route('admin.jobs.index') }}" class="block py-2 px-3 rounded hover:bg-gray-100">All Campaigns</a>
+                        <a href="{{ route('admin.jobs.create') }}" class="block py-2 px-3 rounded hover:bg-gray-100">Create New</a>
                     </div>
 
                     <div>

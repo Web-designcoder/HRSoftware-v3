@@ -7,13 +7,21 @@
         <x-breadcrumbs :links="['Jobs' => route('jobs.index'), $job->title => '#']" />
 
         @auth
-            @if($user->isAdmin())
+            @if($user->isAdmin() || $user->isConsultant())
+            <div>
                 <a href="{{ url('/admin/jobs/' . $job->id . '/applications/create') }}"
                 class="inline-block px-4 py-2 bg-[#04215c] text-white rounded-md hover:bg-[#06318a] transition">
                     + Create Application
                 </a>
+
+                <a href="{{ route('jobs.edit', $job) }}"
+                class="inline-block px-4 py-2 bg-[#04215c] text-white rounded-md hover:bg-[#06318a] transition">
+                    ✏️ Edit Campaign
+                </a>
+            </div>
             @endif
         @endauth
+
     </div>
 
     {{-- ====================== CANDIDATE VIEW ====================== --}}
