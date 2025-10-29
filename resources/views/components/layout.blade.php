@@ -1,4 +1,4 @@
-@props(['showNav' => true, 'bodyClass' => '', 'bodyStyle' => ''])
+@props(['showNav' => true, 'bodyClass' => '', 'bodyStyle' => '', 'forcePublicLayout' => false])
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -13,7 +13,11 @@
 <body class="text-slate-700 {{ $bodyClass }}" 
       style="{{ $bodyStyle ?: 'background: linear-gradient(to right, #5ddfe6, #014cae);' }}">
 
-    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isConsultant()))
+    {{-- ───────────────────────────────────────────────
+        LAYOUT SWITCHER
+        If forcePublicLayout is true, always use the public (employer/candidate) layout
+    ─────────────────────────────────────────────── --}}
+    @if(!$forcePublicLayout && auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isConsultant()))
         {{-- ───────────────────────────────────────────────
             ADMIN / CONSULTANT LAYOUT
         ─────────────────────────────────────────────── --}}
@@ -21,37 +25,6 @@
 
             {{-- Top Bar --}}
             <x-navbar/>
-            {{-- <header class="fixed top-0 left-0 right-0 bg-white h-14 shadow z-20 flex justify-between items-center px-6">
-                <div class="flex items-center space-x-4">
-                    <a href="{{ route('dashboard') }}">
-                        <img src="/images/projecthr-logo.webp" alt="Logo" class="h-8">
-                    </a>
-                    <span class="text-sm font-semibold text-slate-600">Admin Dashboard</span>
-                </div>
-
-                <div class="flex items-center space-x-4">
-                    <a href="{{ route('account.edit') }}" class="flex items-center space-x-2">
-                        @if(auth()->user()->profile_picture)
-                            <img src="{{ asset('storage/'.auth()->user()->profile_picture) }}" class="h-8 w-8 rounded-full object-cover">
-                        @else
-                            <span class="text-sm">Account</span>
-                        @endif
-                    </a>
-
-                    <form action="{{ route('auth.destroy') }}" method="POST" class="inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="text-sm font-medium hover:text-red-800">
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
-                                stroke-width="1.5" stroke="currentColor" 
-                                class="w-5 h-5 mr-1">
-                                <path stroke-linecap="round" stroke-linejoin="round" 
-                                    d="M15.75 9V5.25A2.25 2.25 0 0013.5 3H6.75A2.25 2.25 0 004.5 5.25v13.5A2.25 2.25 0 006.75 21h6.75a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                            </svg>
-                        </button>
-                    </form>
-                </div>
-            </header> --}}
 
             {{-- Sidebar --}}
             <aside id="sidebar" class="fixed top-15 left-0 w-56 bg-white shadow-md h-[calc(100vh-3.5rem)] py-6 px-4 z-10 transition-all duration-200">

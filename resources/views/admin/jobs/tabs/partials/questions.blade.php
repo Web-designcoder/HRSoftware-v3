@@ -9,7 +9,14 @@
         csrf: '{{ csrf_token() }}'
     })">
         <template x-if="questions.length===0">
-            <div class="text-sm text-gray-500">No questions added yet.</div>
+            <div class="text-sm text-gray-500">
+                No questions added yet.
+                <button 
+                    @click="seed" 
+                    class="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-md">
+                    Load Default Questions
+                </button>
+            </div>
         </template>
 
         <template x-if="questions.length>0">

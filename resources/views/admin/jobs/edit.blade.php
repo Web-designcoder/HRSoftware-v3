@@ -9,9 +9,9 @@
             </h1>
 
             <div class="flex gap-3">
-                <a href="{{ route('jobs.show', $job) }}"
-                   class="px-4 py-2 bg-[#04215c] text-white rounded-md  transition">
-                    View as Contact
+                <a href="{{ route('jobs.show', $job) }}?preview=1"
+                    class="px-4 py-2 bg-[#04215c] text-white rounded-md hover:bg-[#06318a] transition">
+                        View as Contact
                 </a>
 
                 <form action="{{ route('admin.jobs.destroy', $job) }}" method="POST"

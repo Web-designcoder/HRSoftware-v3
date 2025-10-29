@@ -275,26 +275,33 @@ class JobUpdateController extends Controller
 
     public function questionsSeedDefaults(Job $job)
     {
+        // Prevent reseeding if questions already exist
         if ($job->questions()->exists()) {
-            return response()->json(['ok' => true]); // already seeded/created
+            return response()->json(['ok' => true, 'message' => 'Questions already exist.']);
         }
 
+        // Official Default Key Competency Questions
         $defaults = [
-            'Describe a challenging situation you faced and how you resolved it.',
-            'How do you handle tight deadlines?',
-            'Give an example of teamwork success.',
+            'Attention to Detail' => 'Describe at least one example when you failed in this area and explain what you learned from the experience?',
+            'Customer Management' => 'Sometimes providing what a customer wants and providing what you know is in the best interests of the customer are not compatible. Please describe an occasion when you experienced this dilemma, explain how you resolved the issue and the eventual outcome.',
+            'Market Understanding' => 'Technical background and commercial understanding: Would you describe your skill set as being more technically or commercially focused? Please give some narrative to support your answer.',
+            'Sales and Business Development' => 'It is often said in business that "people buy people like them". Why do people buy from you and more importantly why do they continue to buy from you? What personality traits do you believe you have that make your selling style so effective? How do you think your customers would describe you professionally?',
+            'Ambition' => 'Explain, in a few sentences, why you excel in this area?',
+            'Leadership Skills' => 'How important do you believe this quality to be to the success of your work?',
+            'Risk Assessment' => 'Describe at least one example when you failed in this area and explain what you learned from the experience?',
         ];
 
-        foreach ($defaults as $i => $text) {
+        $i = 1;
+        foreach ($defaults as $title => $body) {
             $job->questions()->create([
-                'question' => $text,
+                'question' => $body,
                 'is_default' => true,
                 'is_enabled' => true,
-                'sort_order' => $i + 1,
+                'sort_order' => $i++,
             ]);
         }
 
-        return response()->json(['ok' => true]);
+        return response()->json(['ok' => true, 'message' => 'Default Key Competency Questions seeded successfully.']);
     }
 
     public function questionsCreate(Request $request, Job $job)

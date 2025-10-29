@@ -178,19 +178,23 @@ document.addEventListener('alpine:init', () => {
 
     /* ─────────────────────────────
        4. Questions
-       ───────────────────────────── */
+   ───────────────────────────── */
     Alpine.data('jobQuestions', (cfg) => ({
         questions: [],
         question: '',
 
-        async init() { await this.refresh(); },
+        async init() {
+            await this.fetch();
+        },
 
-        async refresh() {
+        async fetch() {
             try {
                 const res = await fetch(cfg.fetchUrl);
                 const json = await res.json();
                 this.questions = json.items ?? [];
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+            }
         },
 
         async add() {
@@ -209,7 +213,9 @@ document.addEventListener('alpine:init', () => {
                     this.questions.push(json.item);
                     this.question = '';
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+            }
         },
 
         async toggle(id) {
@@ -221,7 +227,9 @@ document.addEventListener('alpine:init', () => {
                 const json = await res.json();
                 const q = this.questions.find(q => q.id === id);
                 if (q) q.is_enabled = json.is_enabled;
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+            }
         },
 
         async remove(id) {
@@ -232,9 +240,25 @@ document.addEventListener('alpine:init', () => {
                     headers: { 'X-CSRF-TOKEN': cfg.csrf }
                 });
                 this.questions = this.questions.filter(q => q.id !== id);
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+            }
+        },
+
+        // ✅ New: Load default competency questions
+        async seed() {
+            try {
+                const res = await fetch(cfg.seedUrl, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': cfg.csrf }
+                });
+                if (res.ok) await this.fetch();
+            } catch (e) {
+                console.error(e);
+            }
         },
     }));
+
 
 
     /* ─────────────────────────────

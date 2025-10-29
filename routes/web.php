@@ -184,7 +184,6 @@ Route::middleware('auth')->group(function () {
                 Route::patch('terms', [\App\Http\Controllers\Admin\JobUpdateController::class, 'termsUpdate'])->name('terms.update');
             });
 
-
         });
 
         /* ───────────────────────────────

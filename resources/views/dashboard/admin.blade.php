@@ -63,7 +63,7 @@
                                                 @endif
 
                                                 <div class="mt-2">
-                                                    <a href="{{ route('jobs.show', $application->job?->id) }}"
+                                                    <a href="{{ route('admin.job.application.show', [$application->job?->id, $application->id]) }}"
                                                        class="text-xs underline text-slate-700 hover:text-slate-900">View job</a>
                                                 </div>
                                             </div>
@@ -132,7 +132,7 @@
                                     </p>
 
                                     {{-- View Button --}}
-                                    <a href="{{ route('jobs.show', $campaign) }}"
+                                    <a href="{{ route('admin.jobs.edit', $campaign) }}"
                                        class="mt-auto bg-white text-[#04215c] px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-50 transition text-center">
                                         View Campaign
                                     </a>
