@@ -156,8 +156,8 @@ Route::middleware('auth')->group(function () {
                 // Videos
                 Route::post('video/employer-intro', [\App\Http\Controllers\Admin\JobUpdateController::class, 'uploadEmployerIntroVideo'])->name('video.employer.upload');
                 Route::delete('video/employer-intro', [\App\Http\Controllers\Admin\JobUpdateController::class, 'deleteEmployerIntroVideo'])->name('video.employer.delete');
-                Route::post('video/candidate-assessment', [\App\Http\Controllers\Admin\JobUpdateController::class, 'uploadCandidateAssessmentVideo'])->name('video.candidate.upload');
-                Route::delete('video/candidate-assessment', [\App\Http\Controllers\Admin\JobUpdateController::class, 'deleteCandidateAssessmentVideo'])->name('video.candidate.delete');
+                // Route::post('video/candidate-assessment', [\App\Http\Controllers\Admin\JobUpdateController::class, 'uploadCandidateAssessmentVideo'])->name('video.candidate.upload');
+                // Route::delete('video/candidate-assessment', [\App\Http\Controllers\Admin\JobUpdateController::class, 'deleteCandidateAssessmentVideo'])->name('video.candidate.delete');
 
                 // Campaign Documents
                 Route::get('documents', [\App\Http\Controllers\Admin\JobUpdateController::class, 'documentsIndex'])->name('documents.index');

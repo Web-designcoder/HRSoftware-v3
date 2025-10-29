@@ -14,10 +14,6 @@ use Illuminate\Validation\Rule;
 
 class JobUpdateController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(['auth', 'terms.accepted', 'role:admin,consultant']);
-    }
 
     /* =======================
        DETAILS / OVERVIEWS / LOGO
@@ -77,7 +73,7 @@ class JobUpdateController extends Controller
     public function uploadEmployerIntroVideo(Request $request, Job $job)
     {
         $request->validate([
-            'video' => ['required','file','mimetypes:video/mp4,video/quicktime,video/x-msvideo,application/octet-stream','max:51200'], // 50MB
+            'video' => ['required','file','mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/webm,video/x-matroska,application/octet-stream','max:51200'], // 50MB
         ]);
 
         $path = $this->storeFile($request->file('video'), 'videos/employer');
@@ -97,28 +93,28 @@ class JobUpdateController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    public function uploadCandidateAssessmentVideo(Request $request, Job $job)
-    {
-        $request->validate([
-            'video' => ['required','file','mimetypes:video/mp4,video/quicktime,video/x-msvideo,application/octet-stream','max:51200'],
-        ]);
+    // public function uploadCandidateAssessmentVideo(Request $request, Job $job)
+    // {
+    //     $request->validate([
+    //         'video' => ['required','file','mimetypes:video/mp4,video/quicktime,video/x-msvideo,application/octet-stream','max:51200'],
+    //     ]);
 
-        $path = $this->storeFile($request->file('video'), 'videos/candidate');
-        $job->candidate_assessment_video = $path;
-        $job->save();
+    //     $path = $this->storeFile($request->file('video'), 'videos/candidate');
+    //     $job->candidate_assessment_video = $path;
+    //     $job->save();
 
-        return response()->json(['ok' => true, 'url' => asset("storage/{$path}")]);
-    }
+    //     return response()->json(['ok' => true, 'url' => asset("storage/{$path}")]);
+    // }
 
-    public function deleteCandidateAssessmentVideo(Job $job)
-    {
-        if ($job->candidate_assessment_video) {
-            Storage::disk('public')->delete($job->candidate_assessment_video);
-            $job->candidate_assessment_video = null;
-            $job->save();
-        }
-        return response()->json(['ok' => true]);
-    }
+    // public function deleteCandidateAssessmentVideo(Job $job)
+    // {
+    //     if ($job->candidate_assessment_video) {
+    //         Storage::disk('public')->delete($job->candidate_assessment_video);
+    //         $job->candidate_assessment_video = null;
+    //         $job->save();
+    //     }
+    //     return response()->json(['ok' => true]);
+    // }
 
     /* =======================
        CAMPAIGN DOCUMENTS

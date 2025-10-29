@@ -9,9 +9,9 @@
             </h1>
 
             <div class="flex gap-3">
-                <a href="{{ route('admin.jobs.show', $job) }}"
-                   class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition">
-                    👁️ View as Contact
+                <a href="{{ route('jobs.show', $job) }}"
+                   class="px-4 py-2 bg-[#04215c] text-white rounded-md  transition">
+                    View as Contact
                 </a>
 
                 <form action="{{ route('admin.jobs.destroy', $job) }}" method="POST"
@@ -20,7 +20,7 @@
                     @method('DELETE')
                     <button type="submit"
                             class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
-                        🗑️ Delete Campaign
+                        Delete Campaign
                     </button>
                 </form>
             </div>
