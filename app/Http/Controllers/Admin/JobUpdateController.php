@@ -9,6 +9,7 @@ use App\Models\JobRequiredDocument;
 use App\Models\JobQuestion;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -92,29 +93,6 @@ class JobUpdateController extends Controller
         }
         return response()->json(['ok' => true]);
     }
-
-    // public function uploadCandidateAssessmentVideo(Request $request, Job $job)
-    // {
-    //     $request->validate([
-    //         'video' => ['required','file','mimetypes:video/mp4,video/quicktime,video/x-msvideo,application/octet-stream','max:51200'],
-    //     ]);
-
-    //     $path = $this->storeFile($request->file('video'), 'videos/candidate');
-    //     $job->candidate_assessment_video = $path;
-    //     $job->save();
-
-    //     return response()->json(['ok' => true, 'url' => asset("storage/{$path}")]);
-    // }
-
-    // public function deleteCandidateAssessmentVideo(Job $job)
-    // {
-    //     if ($job->candidate_assessment_video) {
-    //         Storage::disk('public')->delete($job->candidate_assessment_video);
-    //         $job->candidate_assessment_video = null;
-    //         $job->save();
-    //     }
-    //     return response()->json(['ok' => true]);
-    // }
 
     /* =======================
        CAMPAIGN DOCUMENTS
@@ -259,46 +237,82 @@ class JobUpdateController extends Controller
        KEY COMPETENCY QUESTIONS
        ======================= */
 
+    // Return data in a unified shape: id, heading, body, flags, sort_order
     public function questionsIndex(Job $job)
     {
+        $hasHeading = Schema::hasColumn('job_questions', 'heading');
+        $hasBody    = Schema::hasColumn('job_questions', 'body');
+
+        $items = $job->questions()->get()->map(function ($q) use ($hasHeading, $hasBody) {
+            if ($hasHeading || $hasBody) {
+                return [
+                    'id'         => $q->id,
+                    'heading'    => $hasHeading ? (string)$q->heading : $this->deriveHeadingFromLegacy($q->body ?? ''),
+                    'body'       => $hasBody ? (string)$q->body : (string)($q->question ?? ''),
+                    'is_default' => (bool)$q->is_default,
+                    'is_enabled' => (bool)$q->is_enabled,
+                    'sort_order' => (int)$q->sort_order,
+                ];
+            }
+
+            // Legacy: only "question" column exists
+            $legacy = (string)($q->question ?? '');
+            return [
+                'id'         => $q->id,
+                'heading'    => $this->deriveHeadingFromLegacy($legacy),
+                'body'       => $legacy,
+                'is_default' => (bool)$q->is_default,
+                'is_enabled' => (bool)$q->is_enabled,
+                'sort_order' => (int)$q->sort_order,
+            ];
+        });
+
         return response()->json([
-            'ok' => true,
-            'items' => $job->questions()->get()->map(fn($q) => [
-                'id' => $q->id,
-                'question' => $q->question,
-                'is_default' => $q->is_default,
-                'is_enabled' => $q->is_enabled,
-                'sort_order' => $q->sort_order,
-            ]),
+            'ok'    => true,
+            'items' => $items,
         ]);
     }
 
     public function questionsSeedDefaults(Job $job)
     {
-        // Prevent reseeding if questions already exist
+        // Prevent reseeding if any questions exist
         if ($job->questions()->exists()) {
             return response()->json(['ok' => true, 'message' => 'Questions already exist.']);
         }
 
-        // Official Default Key Competency Questions
         $defaults = [
-            'Attention to Detail' => 'Describe at least one example when you failed in this area and explain what you learned from the experience?',
-            'Customer Management' => 'Sometimes providing what a customer wants and providing what you know is in the best interests of the customer are not compatible. Please describe an occasion when you experienced this dilemma, explain how you resolved the issue and the eventual outcome.',
-            'Market Understanding' => 'Technical background and commercial understanding: Would you describe your skill set as being more technically or commercially focused? Please give some narrative to support your answer.',
-            'Sales and Business Development' => 'It is often said in business that "people buy people like them". Why do people buy from you and more importantly why do they continue to buy from you? What personality traits do you believe you have that make your selling style so effective? How do you think your customers would describe you professionally?',
-            'Ambition' => 'Explain, in a few sentences, why you excel in this area?',
-            'Leadership Skills' => 'How important do you believe this quality to be to the success of your work?',
-            'Risk Assessment' => 'Describe at least one example when you failed in this area and explain what you learned from the experience?',
+            ['heading' => 'Attention to Detail',           'body' => 'Describe at least one example when you failed in this area and explain what you learned from the experience?'],
+            ['heading' => 'Customer Management',           'body' => 'Sometimes providing what a customer wants and providing what you know is in the best interests of the customer are not compatible. Please describe an occasion when you experienced this dilemma, explain how you resolved the issue and the eventual outcome.'],
+            ['heading' => 'Market Understanding',          'body' => 'Technical background and commercial understanding: Would you describe your skill set as being more technically or commercially focused? Please give some narrative to support your answer.'],
+            ['heading' => 'Sales and Business Development','body' => 'It is often said in business that “people buy people like them”. Why do people buy from you and more importantly why do they continue to buy from you? What personality traits do you believe you have that make your selling style so effective? How do you think your customers would describe you professionally?'],
+            ['heading' => 'Ambition',                      'body' => 'Explain, in a few sentences, why you excel in this area?'],
+            ['heading' => 'Leadership Skills',             'body' => 'How important do you believe this quality to be to the success of your work?'],
+            ['heading' => 'Risk Assessment',               'body' => 'Describe at least one example when you failed in this area and explain what you learned from the experience?'],
         ];
 
-        $i = 1;
-        foreach ($defaults as $title => $body) {
-            $job->questions()->create([
-                'question' => $body,
-                'is_default' => true,
-                'is_enabled' => true,
-                'sort_order' => $i++,
-            ]);
+        $hasHeading = Schema::hasColumn('job_questions', 'heading');
+        $hasBody    = Schema::hasColumn('job_questions', 'body');
+
+        foreach ($defaults as $i => $q) {
+            if ($hasHeading || $hasBody) {
+                $job->questions()->create([
+                    'heading'    => $hasHeading ? $q['heading'] : null,
+                    'body'       => $hasBody ? $q['body'] : null,
+                    // legacy fallback columns below are ignored if your model fillable excludes them
+                    'question'   => (!$hasBody) ? ($q['heading'].': '.$q['body']) : null,
+                    'is_default' => true,
+                    'is_enabled' => true,
+                    'sort_order' => $i + 1,
+                ]);
+            } else {
+                // Legacy table has only "question"
+                $job->questions()->create([
+                    'question'   => $q['heading'].': '.$q['body'],
+                    'is_default' => true,
+                    'is_enabled' => true,
+                    'sort_order' => $i + 1,
+                ]);
+            }
         }
 
         return response()->json(['ok' => true, 'message' => 'Default Key Competency Questions seeded successfully.']);
@@ -306,26 +320,66 @@ class JobUpdateController extends Controller
 
     public function questionsCreate(Request $request, Job $job)
     {
-        $data = $request->validate([
-            'question' => ['required','string','max:1000'],
-        ]);
+        $hasHeading = Schema::hasColumn('job_questions', 'heading');
+        $hasBody    = Schema::hasColumn('job_questions', 'body');
+
+        // Validate based on schema
+        if ($hasHeading || $hasBody) {
+            $data = $request->validate([
+                'heading' => ['required','string','max:255'],
+                'body'    => ['required','string','max:1000'],
+            ]);
+        } else {
+            $data = $request->validate([
+                'question' => ['nullable','string','max:1200'],
+                // we’ll synthesize question if not provided
+                'heading'  => ['nullable','string','max:255'],
+                'body'     => ['nullable','string','max:1000'],
+            ]);
+        }
 
         $nextOrder = (int) ($job->questions()->max('sort_order') ?? 0) + 1;
+
+        if ($hasHeading || $hasBody) {
+            $q = $job->questions()->create([
+                'heading'    => $hasHeading ? $data['heading'] : null,
+                'body'       => $hasBody ? $data['body'] : null,
+                'is_default' => false,
+                'is_enabled' => true,
+                'sort_order' => $nextOrder,
+            ]);
+
+            return response()->json([
+                'ok'   => true,
+                'item' => [
+                    'id'         => $q->id,
+                    'heading'    => (string)$q->heading,
+                    'body'       => (string)$q->body,
+                    'is_default' => (bool)$q->is_default,
+                    'is_enabled' => (bool)$q->is_enabled,
+                    'sort_order' => (int)$q->sort_order,
+                ],
+            ]);
+        }
+
+        // Legacy only: store as single "question"
+        $questionText = $data['question'] ?? trim(($data['heading'] ?? '').': '.($data['body'] ?? ''));
         $q = $job->questions()->create([
-            'question' => $data['question'],
+            'question'   => $questionText,
             'is_default' => false,
             'is_enabled' => true,
             'sort_order' => $nextOrder,
         ]);
 
         return response()->json([
-            'ok' => true,
+            'ok'   => true,
             'item' => [
-                'id' => $q->id,
-                'question' => $q->question,
-                'is_default' => $q->is_default,
-                'is_enabled' => $q->is_enabled,
-                'sort_order' => $q->sort_order,
+                'id'         => $q->id,
+                'heading'    => $this->deriveHeadingFromLegacy((string)$q->question),
+                'body'       => (string)$q->question,
+                'is_default' => (bool)$q->is_default,
+                'is_enabled' => (bool)$q->is_enabled,
+                'sort_order' => (int)$q->sort_order,
             ],
         ]);
     }
@@ -394,5 +448,15 @@ class JobUpdateController extends Controller
     private function storeFile(UploadedFile $file, string $dir): string
     {
         return $file->store($dir, 'public');
+    }
+
+    private function deriveHeadingFromLegacy(string $text): string
+    {
+        // Try split on colon first, then fallback to first 5 words.
+        if (str_contains($text, ':')) {
+            return trim(explode(':', $text, 2)[0]);
+        }
+        $words = preg_split('/\s+/', trim($text));
+        return implode(' ', array_slice($words, 0, min(5, count($words))));
     }
 }

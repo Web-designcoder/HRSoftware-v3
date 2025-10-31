@@ -8,6 +8,7 @@ document.addEventListener('alpine:init', () => {
        1. Campaign Details & Overviews
        ───────────────────────────── */
     Alpine.data('campaignDetails', (cfg) => ({
+        activeTab: 'background',
         job: cfg.job,
         logo: cfg.logo,
         background: cfg.background,
@@ -177,88 +178,92 @@ document.addEventListener('alpine:init', () => {
 
 
     /* ─────────────────────────────
-       4. Questions
+   4. Questions (with modal)
    ───────────────────────────── */
-    Alpine.data('jobQuestions', (cfg) => ({
-        questions: [],
-        question: '',
+Alpine.data('jobQuestions', (cfg) => ({
+    // UI state
+    openKCQModal: false,
 
-        async init() {
-            await this.fetch();
-        },
+    // Data
+    questions: [],
+    heading: '',
+    body: '',
 
-        async fetch() {
-            try {
-                const res = await fetch(cfg.fetchUrl);
-                const json = await res.json();
-                this.questions = json.items ?? [];
-            } catch (e) {
-                console.error(e);
+    // Lifecycle
+    async init() { await this.fetch(); },
+
+    // API calls
+    async fetch() {
+        try {
+            const res = await fetch(cfg.fetchUrl);
+            const json = await res.json();
+            this.questions = json.items ?? [];
+        } catch (e) {
+            console.error(e);
+        }
+    },
+
+    async add() {
+        if (!this.heading || !this.body) return;
+        try {
+            const res = await fetch(cfg.createUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': cfg.csrf,
+                },
+                body: JSON.stringify({ heading: this.heading, body: this.body })
+            });
+            const json = await res.json();
+            if (json.ok && json.item) {
+                this.questions.push(json.item);
+                this.heading = '';
+                this.body = '';
             }
-        },
+        } catch (e) {
+            console.error(e);
+        }
+    },
 
-        async add() {
-            if (!this.question) return;
-            try {
-                const res = await fetch(cfg.createUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': cfg.csrf,
-                    },
-                    body: JSON.stringify({ question: this.question })
-                });
-                const json = await res.json();
-                if (json.ok) {
-                    this.questions.push(json.item);
-                    this.question = '';
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        },
+    async toggle(id) {
+        try {
+            const res = await fetch(cfg.toggleBase.replace('/0', `/${id}`), {
+                method: 'PATCH',
+                headers: { 'X-CSRF-TOKEN': cfg.csrf }
+            });
+            const json = await res.json();
+            const q = this.questions.find(q => q.id === id);
+            if (q && json && 'is_enabled' in json) q.is_enabled = json.is_enabled;
+        } catch (e) {
+            console.error(e);
+        }
+    },
 
-        async toggle(id) {
-            try {
-                const res = await fetch(cfg.toggleBase.replace('/0', `/${id}`), {
-                    method: 'PATCH',
-                    headers: { 'X-CSRF-TOKEN': cfg.csrf }
-                });
-                const json = await res.json();
-                const q = this.questions.find(q => q.id === id);
-                if (q) q.is_enabled = json.is_enabled;
-            } catch (e) {
-                console.error(e);
-            }
-        },
+    async remove(id) {
+        if (!confirm('Delete this question?')) return;
+        try {
+            await fetch(cfg.deleteBase.replace('/0', `/${id}`), {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': cfg.csrf }
+            });
+            this.questions = this.questions.filter(q => q.id !== id);
+        } catch (e) {
+            console.error(e);
+        }
+    },
 
-        async remove(id) {
-            if (!confirm('Delete this question?')) return;
-            try {
-                await fetch(cfg.deleteBase.replace('/0', `/${id}`), {
-                    method: 'DELETE',
-                    headers: { 'X-CSRF-TOKEN': cfg.csrf }
-                });
-                this.questions = this.questions.filter(q => q.id !== id);
-            } catch (e) {
-                console.error(e);
-            }
-        },
-
-        // ✅ New: Load default competency questions
-        async seed() {
-            try {
-                const res = await fetch(cfg.seedUrl, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': cfg.csrf }
-                });
-                if (res.ok) await this.fetch();
-            } catch (e) {
-                console.error(e);
-            }
-        },
-    }));
-
+    async seed() {
+        try {
+            const res = await fetch(cfg.seedUrl, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': cfg.csrf }
+            });
+            if (res.ok) await this.fetch();
+        } catch (e) {
+            console.error(e);
+        }
+    },
+}));
 
 
     /* ─────────────────────────────

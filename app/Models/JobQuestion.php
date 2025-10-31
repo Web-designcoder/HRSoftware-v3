@@ -9,7 +9,8 @@ class JobQuestion extends Model
 {
     protected $fillable = [
         'job_id',
-        'question',
+        'heading',
+        'body',
         'is_default',
         'is_enabled',
         'sort_order',
