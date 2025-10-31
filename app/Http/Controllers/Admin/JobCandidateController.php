@@ -17,27 +17,26 @@ class JobCandidateController extends Controller
             'candidate_ids.*' => 'exists:users,id',
         ]);
 
-        $attached = [];
-        foreach ($request->candidate_ids as $candidateId) {
-            $attached[] = $candidateId;
-            $job->jobApplications()->firstOrCreate(['user_id' => $candidateId]);
-        }
+        // Attach to pivot table only
+        $job->assignedCandidates()->syncWithoutDetaching($request->candidate_ids);
+
+        // Build candidate response for UI
+        $candidates = User::whereIn('id', $request->candidate_ids)
+            ->get(['id', 'first_name', 'last_name', 'profile_picture'])
+            ->map(fn($u) => [
+                'id' => $u->id,
+                'name' => $u->first_name . ' ' . $u->last_name,
+                'profile_picture' => $u->profile_picture
+                    ? asset('storage/' . $u->profile_picture)
+                    : asset('images/default-avatar.png'),
+                'status' => 'Shortlist',
+                'view_url' => '#', // no application yet
+            ]);
 
         return response()->json([
             'message' => 'Candidates added successfully.',
-            'candidates' => $job->jobApplications()
-                ->with(['user:id,first_name,last_name,profile_picture'])
-                ->get()
-                ->map(fn($a) => [
-                    'id' => $a->user->id,
-                    'name' => $a->user->first_name . ' ' . $a->user->last_name,
-                    'profile_picture' => $a->user->profile_picture
-                        ? asset('storage/' . $a->user->profile_picture)
-                        : asset('images/default-avatar.png'),
-                    'status' => $a->status ?? 'Shortlist',
-                    'view_url' => route('admin.job.application.show', [$job, $a]),
-                ])
-            ]);
+            'candidates' => $candidates,
+        ]);
     }
 
     // Detach candidate
